@@ -4,7 +4,7 @@ from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 
 
-# Shared properties
+# Shared properties for User
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
@@ -39,14 +39,16 @@ class UpdatePassword(SQLModel):
     new_password: str = Field(min_length=8, max_length=40)
 
 
-# Database model, database table inferred from class name
+# Database model for User, database table inferred from class name
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
-    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    labs: list["Lab"] = Relationship(back_populates="owner")
+    user_labs: list["UserLab"] = Relationship(back_populates="user")
+    borrowings: list["Borrowing"] = Relationship(back_populates="user")
 
 
-# Properties to return via API, id is always required
+# Properties to return via API for User, id is always required
 class UserPublic(UserBase):
     id: uuid.UUID
 
@@ -56,41 +58,96 @@ class UsersPublic(SQLModel):
     count: int
 
 
-# Shared properties
-class ItemBase(SQLModel):
-    title: str = Field(min_length=1, max_length=255)
+# Shared properties for Lab
+class LabBase(SQLModel):
+    lab_name: str = Field(max_length=255)
     description: str | None = Field(default=None, max_length=255)
 
 
-# Properties to receive on item creation
+# Properties to receive via API on creation
+class LabCreate(LabBase):
+    pass
+
+
+# Properties to receive via API on update, all are optional
+class LabUpdate(LabBase):
+    lab_name: str | None = Field(default=None, max_length=255)  # type: ignore
+
+
+# Database model for Lab, database table inferred from class name
+class Lab(LabBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    owner: User | None = Relationship(back_populates="labs")
+    items: list["Item"] = Relationship(back_populates="lab")
+    user_labs: list["UserLab"] = Relationship(back_populates="lab")
+
+
+# Properties to return via API for Lab, id is always required
+class LabPublic(LabBase):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+
+
+class LabsPublic(SQLModel):
+    data: list[LabPublic]
+    count: int
+
+
+# Shared properties for Item
+class ItemBase(SQLModel):
+    item_name: str = Field(max_length=255)
+    quantity: int = Field(default=0)
+
+
+# Properties to receive via API on creation
 class ItemCreate(ItemBase):
     pass
 
 
-# Properties to receive on item update
+# Properties to receive via API on update, all are optional
 class ItemUpdate(ItemBase):
-    title: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
+    item_name: str | None = Field(default=None, max_length=255)  # type: ignore
+    quantity: int | None = Field(default=None)
 
 
-# Database model, database table inferred from class name
+# Database model for Item, database table inferred from class name
 class Item(ItemBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    title: str = Field(max_length=255)
-    owner_id: uuid.UUID = Field(
-        foreign_key="user.id", nullable=False, ondelete="CASCADE"
-    )
-    owner: User | None = Relationship(back_populates="items")
+    lab_id: uuid.UUID = Field(foreign_key="lab.id", nullable=False, ondelete="CASCADE")
+    lab: Lab | None = Relationship(back_populates="items")
+    borrowings: list["Borrowing"] = Relationship(back_populates="item")
 
 
-# Properties to return via API, id is always required
+# Properties to return via API for Item, id is always required
 class ItemPublic(ItemBase):
     id: uuid.UUID
-    owner_id: uuid.UUID
+    lab_id: uuid.UUID
 
 
 class ItemsPublic(SQLModel):
     data: list[ItemPublic]
     count: int
+
+
+# Database model for UserLab, database table inferred from class name
+class UserLab(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    lab_id: uuid.UUID = Field(foreign_key="lab.id", nullable=False, ondelete="CASCADE")
+    user: User | None = Relationship(back_populates="user_labs")
+    lab: Lab | None = Relationship(back_populates="user_labs")
+
+
+# Database model for Borrowing, database table inferred from class name
+class Borrowing(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    item_id: uuid.UUID = Field(foreign_key="item.id", nullable=False, ondelete="CASCADE")
+    borrowed_at: str | None = Field(default=None)
+    returned_at: str | None = Field(default=None)
+    user: User | None = Relationship(back_populates="borrowings")
+    item: Item | None = Relationship(back_populates="borrowings")
 
 
 # Generic message

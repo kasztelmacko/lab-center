@@ -30,17 +30,23 @@ def upgrade():
                type_=sa.String(length=255),
                existing_nullable=True)
 
-    # Adjust the length of the title field in the Item table
-    op.alter_column('item', 'title',
+    # Adjust the length of the lab_name field in the Lab table
+    op.alter_column('lab', 'lab_name',
                existing_type=sa.String(),
                type_=sa.String(length=255),
                existing_nullable=False)
 
-    # Adjust the length of the description field in the Item table
-    op.alter_column('item', 'description',
+    # Adjust the length of the description field in the Lab table
+    op.alter_column('lab', 'description',
                existing_type=sa.String(),
                type_=sa.String(length=255),
                existing_nullable=True)
+
+    # Adjust the length of the item_name field in the Item table
+    op.alter_column('item', 'item_name',
+               existing_type=sa.String(),
+               type_=sa.String(length=255),
+               existing_nullable=False)
 
 
 def downgrade():
@@ -56,14 +62,20 @@ def downgrade():
                type_=sa.String(),
                existing_nullable=True)
 
-    # Revert the length of the title field in the Item table
-    op.alter_column('item', 'title',
+    # Revert the length of the lab_name field in the Lab table
+    op.alter_column('lab', 'lab_name',
                existing_type=sa.String(length=255),
                type_=sa.String(),
                existing_nullable=False)
 
-    # Revert the length of the description field in the Item table
-    op.alter_column('item', 'description',
+    # Revert the length of the description field in the Lab table
+    op.alter_column('lab', 'description',
                existing_type=sa.String(length=255),
                type_=sa.String(),
                existing_nullable=True)
+
+    # Revert the length of the item_name field in the Item table
+    op.alter_column('item', 'item_name',
+               existing_type=sa.String(length=255),
+               type_=sa.String(),
+               existing_nullable=False)

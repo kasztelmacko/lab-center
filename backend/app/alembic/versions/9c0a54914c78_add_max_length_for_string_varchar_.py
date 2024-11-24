@@ -1,4 +1,4 @@
-"""Add max length for string(varchar) fields in User and Items models
+"""Add max length for string(varchar) fields in User, Lab, and Item models
 
 Revision ID: 9c0a54914c78
 Revises: e2412789c190
@@ -48,6 +48,12 @@ def upgrade():
                type_=sa.String(length=255),
                existing_nullable=False)
 
+    # Adjust the length of the hashed_password field in the User table
+    op.alter_column('user', 'hashed_password',
+               existing_type=sa.String(),
+               type_=sa.String(length=255),
+               existing_nullable=False)
+
 
 def downgrade():
     # Revert the length of the email field in the User table
@@ -76,6 +82,12 @@ def downgrade():
 
     # Revert the length of the item_name field in the Item table
     op.alter_column('item', 'item_name',
+               existing_type=sa.String(length=255),
+               type_=sa.String(),
+               existing_nullable=False)
+
+    # Revert the length of the hashed_password field in the User table
+    op.alter_column('user', 'hashed_password',
                existing_type=sa.String(length=255),
                type_=sa.String(),
                existing_nullable=False)

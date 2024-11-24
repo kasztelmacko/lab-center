@@ -5,7 +5,9 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Lab, LabCreate, LabPublic, LabsPublic, LabUpdate, Message
+from app.models import (Lab, LabCreate, LabPublic, LabsPublic, LabUpdate, 
+                        UserLab, AddUsersToLab, RemoveUsersFromLab, User,
+                        Message)
 
 router = APIRouter()
 
@@ -41,7 +43,7 @@ def read_labs(
     return LabsPublic(data=labs, count=count)
 
 
-@router.get("/{id}", response_model=LabPublic)
+@router.get("/{lab_id}", response_model=LabPublic)
 def read_lab(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:
     """
     Get lab by ID.
@@ -68,7 +70,7 @@ def create_lab(
     return lab
 
 
-@router.put("/{id}", response_model=LabPublic)
+@router.put("/{lab_id}", response_model=LabPublic)
 def update_lab(
     *,
     session: SessionDep,
@@ -92,7 +94,7 @@ def update_lab(
     return lab
 
 
-@router.delete("/{id}")
+@router.delete("/{lab_id}")
 def delete_lab(
     session: SessionDep, current_user: CurrentUser, id: uuid.UUID
 ) -> Message:
@@ -107,3 +109,79 @@ def delete_lab(
     session.delete(lab)
     session.commit()
     return Message(message="Lab deleted successfully")
+
+@router.post("/{lab_id}/add-users", response_model=Message)
+def add_users_to_lab(
+    *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID, add_users_in: AddUsersToLab
+) -> Any:
+    """
+    Add users to a lab by providing a list of emails.
+    """
+    # Check if the current user is the owner of the lab
+    lab = session.get(Lab, lab_id)
+    if not lab:
+        raise HTTPException(status_code=404, detail="Lab not found")
+    if not current_user.is_superuser and (lab.owner_id != current_user.id):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+
+    # Find users by their emails
+    emails = add_users_in.emails
+    users = session.exec(select(User).where(User.email.in_(emails))).all()
+
+    # Check if all users were found
+    found_emails = {user.email for user in users}
+    not_found_emails = set(emails) - found_emails
+    if not_found_emails:
+        raise HTTPException(status_code=404, detail=f"Users with emails {not_found_emails} not found")
+
+    # Create UserLab instances for each user and the lab
+    user_labs = []
+    for user in users:
+        user_lab = UserLab(user_id=user.id, lab_id=lab_id)
+        session.add(user_lab)
+        user_labs.append(user_lab)
+
+    session.commit()
+    return Message(message="Users added to lab successfully")
+
+@router.delete("/{lab_id}/remove-user", response_model=Message)
+def remove_users_from_lab(
+    *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID, remove_user_in: RemoveUsersFromLab
+) -> Any:
+    """
+    Remove users from a lab by providing a list of emails.
+    """
+    # Check if the current user is the owner of the lab
+    lab = session.get(Lab, lab_id)
+    if not lab:
+        raise HTTPException(status_code=404, detail="Lab not found")
+    if not current_user.is_superuser and (lab.owner_id != current_user.id):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+
+    # Find user by their emails
+    emails = remove_user_in.emails
+    user = session.exec(select(User).where(User.email.in_(emails))).all()
+
+    # Check if user was found
+    found_emails = {user.email for user in user}
+    not_found_emails = set(emails) - found_emails
+    if not_found_emails:
+        raise HTTPException(status_code=404, detail=f"User with emails {not_found_emails} not found")
+
+    # Find UserLab instances to delete
+    user_labs_to_delete = session.exec(
+        select(UserLab).where(
+            UserLab.lab_id == lab_id,
+            UserLab.user_id.in_([user.id for user in user])
+        )
+    ).all()
+
+    if not user_labs_to_delete:
+        raise HTTPException(status_code=404, detail="No matching UserLab instances found")
+
+    # Delete UserLab instances
+    for user_lab in user_labs_to_delete:
+        session.delete(user_lab)
+
+    session.commit()
+    return Message(message="Users removed from lab successfully")

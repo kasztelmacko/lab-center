@@ -23,6 +23,8 @@ from app.models import (
     UsersPublic,
     UserUpdate,
     UserUpdateMe,
+    Borrowing,
+    UserLab
 )
 from app.utils import generate_new_account_email, send_email
 
@@ -226,3 +228,35 @@ def delete_user(
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")
+
+@router.get("/users/me/borrows", response_model=list[Borrowing])
+def view_my_borrowings(
+    *, session: SessionDep, current_user: CurrentUser
+) -> Any:
+    """
+    View all borrowings for the current user.
+    """
+    # Get all borrowings for the current user
+    borrowings = session.exec(
+        select(Borrowing).where(
+            Borrowing.user_id == current_user.id
+        )
+    ).all()
+
+    return borrowings
+
+@router.get("/users/me/labs", response_model=list[UserLab])
+def view_my_labs(
+    *, session: SessionDep, current_user: CurrentUser
+) -> Any:
+    """
+    View all labs for the current user.
+    """
+    # Get all labs for the current user
+    user_labs = session.exec(
+        select(UserLab).where(
+            UserLab.user_id == current_user.id
+        )
+    ).all()
+
+    return user_labs

@@ -5,16 +5,16 @@ from sqlmodel import Session
 
 from app.core.config import settings
 from app.tests.utils.item import create_random_item
-from app.tests.utils.labs import get_random_lab_id
+from app.tests.utils.labs import create_random_lab
 
 
 def test_create_item(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
-    lab_id = get_random_lab_id(db)  # Ensure you have this function defined
+    lab = create_random_lab(db)  # Ensure you have this function defined
     data = {"item_name": "Foo", "quantity": 3}
     response = client.post(
-        f"{settings.API_V1_STR}/labs/{lab_id}/items",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items",
         headers=superuser_token_headers,
         json=data,
     )
@@ -24,16 +24,16 @@ def test_create_item(
     assert content["quantity"] == data["quantity"]
     assert "item_id" in content
     assert "lab_id" in content
-    assert content["lab_id"] == str(lab_id)
+    assert content["lab_id"] == str(lab.lab_id)
 
 
 def test_read_item(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
-    lab_id = get_random_lab_id(db)
+    lab = create_random_lab(db)
     item = create_random_item(db)
     response = client.get(
-        f"{settings.API_V1_STR}/labs/{lab_id}/items/{item.item_id}",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}",
         headers=superuser_token_headers,
     )
     assert response.status_code == 200
@@ -47,9 +47,9 @@ def test_read_item(
 def test_read_item_not_found(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
-    lab_id = get_random_lab_id(db)
+    lab = create_random_lab(db)
     response = client.get(
-        f"{settings.API_V1_STR}/labs/{lab_id}/items/{uuid.uuid4()}",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{uuid.uuid4()}",
         headers=superuser_token_headers,
     )
     assert response.status_code == 404
@@ -60,10 +60,10 @@ def test_read_item_not_found(
 def test_read_item_not_enough_permissions(
     client: TestClient, normal_user_token_headers: dict[str, str], db: Session
 ) -> None:
-    lab_id = get_random_lab_id(db)
+    lab = create_random_lab(db)
     item = create_random_item(db)
     response = client.get(
-        f"{settings.API_V1_STR}/labs/{lab_id}/items/{item.item_id}",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}",
         headers=normal_user_token_headers,
     )
     assert response.status_code == 400
@@ -74,11 +74,11 @@ def test_read_item_not_enough_permissions(
 def test_read_items(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
-    lab_id = get_random_lab_id(db)
+    lab = create_random_lab(db)
     create_random_item(db)
     create_random_item(db)
     response = client.get(
-        f"{settings.API_V1_STR}/labs/{lab_id}/items/",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/",
         headers=superuser_token_headers,
     )
     assert response.status_code == 200
@@ -89,11 +89,11 @@ def test_read_items(
 def test_update_item(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
-    lab_id = get_random_lab_id(db)
+    lab = create_random_lab(db)
     item = create_random_item(db)
     data = {"item_name": "Updated title", "quantity": 6}
     response = client.put(
-        f"{settings.API_V1_STR}/labs/{lab_id}/items/{item.item_id}",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}",
         headers=superuser_token_headers,
         json=data,
     )
@@ -108,10 +108,10 @@ def test_update_item(
 def test_update_item_not_found(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
-    lab_id = get_random_lab_id(db)
+    lab = create_random_lab(db)
     data = {"item_name": "Updated title", "quantity": 6}
     response = client.put(
-        f"{settings.API_V1_STR}/labs/{lab_id}/items/{uuid.uuid4()}",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{uuid.uuid4()}",
         headers=superuser_token_headers,
         json=data,
     )
@@ -123,11 +123,11 @@ def test_update_item_not_found(
 def test_update_item_not_enough_permissions(
     client: TestClient, normal_user_token_headers: dict[str, str], db: Session
 ) -> None:
-    lab_id = get_random_lab_id(db)
+    lab = create_random_lab(db)
     item = create_random_item(db)
     data = {"item_name": "Updated title", "quantity": 6}
     response = client.put(
-        f"{settings.API_V1_STR}/labs/{lab_id}/items/{item.item_id}",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}",
         headers=normal_user_token_headers,
         json=data,
     )
@@ -139,10 +139,10 @@ def test_update_item_not_enough_permissions(
 def test_delete_item(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
-    lab_id = get_random_lab_id(db)
+    lab = create_random_lab(db)
     item = create_random_item(db)
     response = client.delete(
-        f"{settings.API_V1_STR}/labs/{lab_id}/items/{item.item_id}",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}",
         headers=superuser_token_headers,
     )
     assert response.status_code == 200
@@ -153,9 +153,9 @@ def test_delete_item(
 def test_delete_item_not_found(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
-    lab_id = get_random_lab_id(db)
+    lab = create_random_lab(db)
     response = client.delete(
-        f"{settings.API_V1_STR}/labs/{lab_id}/items/{uuid.uuid4()}",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{uuid.uuid4()}",
         headers=superuser_token_headers,
     )
     assert response.status_code == 404
@@ -166,12 +166,13 @@ def test_delete_item_not_found(
 def test_delete_item_not_enough_permissions(
     client: TestClient, normal_user_token_headers: dict[str, str], db: Session
 ) -> None:
-    lab_id = get_random_lab_id(db)
+    lab = create_random_lab(db)
     item = create_random_item(db)
     response = client.delete(
-        f"{settings.API_V1_STR}/labs/{lab_id}/items/{item.item_id}",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}",
         headers=normal_user_token_headers,
     )
     assert response.status_code == 400
     content = response.json()
     assert content["detail"] == "Not enough permissions"
+    

@@ -186,4 +186,35 @@ def remove_users_from_lab(
     session.commit()
     return Message(message="Users removed from lab successfully")
 
+@router.get("/{lab_id}/users", response_model=list[User])
+def view_lab_users(
+    *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID
+) -> Any:
+    """
+    View all users in a specific lab.
+    """
+    # Check if the current user is the owner of the lab or a superuser
+    lab = session.get(Lab, lab_id)
+    if not lab:
+        raise HTTPException(status_code=404, detail="Lab not found")
+    if not current_user.is_superuser and (lab.owner_id != current_user.user_id):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+
+    # Get all UserLab instances for the lab
+    user_labs = session.exec(
+        select(UserLab).where(
+            UserLab.lab_id == lab_id
+        )
+    ).all()
+
+    # Get the associated users
+    user_ids = [user_lab.user_id for user_lab in user_labs]
+    users = session.exec(
+        select(User).where(
+            User.user_id.in_(user_ids)
+        )
+    ).all()
+
+    return users
+
 

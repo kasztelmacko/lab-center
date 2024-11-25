@@ -4,7 +4,8 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session
 
 from app.core.config import settings
-from app.tests.utils import create_random_lab, create_random_user, random_lower_string
+from app.tests.utils import create_random_user
+from app.tests.utils.labs import create_random_lab
 
 
 def test_create_lab(

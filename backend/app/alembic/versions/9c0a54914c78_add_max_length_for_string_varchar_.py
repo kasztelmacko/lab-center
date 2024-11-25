@@ -54,6 +54,54 @@ def upgrade():
                type_=sa.String(length=255),
                existing_nullable=False)
 
+    # Adjust the length of the lab_place field in the Lab table
+    op.alter_column('lab', 'lab_place',
+               existing_type=sa.String(),
+               type_=sa.String(length=255),
+               existing_nullable=True)
+
+    # Adjust the length of the lab_university field in the Lab table
+    op.alter_column('lab', 'lab_university',
+               existing_type=sa.String(),
+               type_=sa.String(length=255),
+               existing_nullable=True)
+
+    # Adjust the length of the lab_num field in the Lab table
+    op.alter_column('lab', 'lab_num',
+               existing_type=sa.String(),
+               type_=sa.String(length=255),
+               existing_nullable=True)
+
+    # Adjust the length of the item_img_url field in the Item table
+    op.alter_column('item', 'item_img_url',
+               existing_type=sa.String(),
+               type_=sa.String(length=255),
+               existing_nullable=True)
+
+    # Adjust the length of the item_vendor field in the Item table
+    op.alter_column('item', 'item_vendor',
+               existing_type=sa.String(),
+               type_=sa.String(length=255),
+               existing_nullable=True)
+
+    # Adjust the length of the item_params field in the Item table
+    op.alter_column('item', 'item_params',
+               existing_type=sa.String(),
+               type_=sa.String(length=255),
+               existing_nullable=True)
+
+    # Adjust the length of the table_name field in the Borrowing table
+    op.alter_column('borrowing', 'table_name',
+               existing_type=sa.String(),
+               type_=sa.String(length=255),
+               existing_nullable=True)
+
+    # Adjust the length of the system_name field in the Borrowing table
+    op.alter_column('borrowing', 'system_name',
+               existing_type=sa.String(),
+               type_=sa.String(length=255),
+               existing_nullable=True)
+
 
 def downgrade():
     # Revert the length of the email field in the User table
@@ -91,3 +139,51 @@ def downgrade():
                existing_type=sa.String(length=255),
                type_=sa.String(),
                existing_nullable=False)
+
+    # Revert the length of the lab_place field in the Lab table
+    op.alter_column('lab', 'lab_place',
+               existing_type=sa.String(length=255),
+               type_=sa.String(),
+               existing_nullable=True)
+
+    # Revert the length of the lab_university field in the Lab table
+    op.alter_column('lab', 'lab_university',
+               existing_type=sa.String(length=255),
+               type_=sa.String(),
+               existing_nullable=True)
+
+    # Revert the length of the lab_num field in the Lab table
+    op.alter_column('lab', 'lab_num',
+               existing_type=sa.String(length=255),
+               type_=sa.String(),
+               existing_nullable=True)
+
+    # Revert the length of the item_img_url field in the Item table
+    op.alter_column('item', 'item_img_url',
+               existing_type=sa.String(length=255),
+               type_=sa.String(),
+               existing_nullable=True)
+
+    # Revert the length of the item_vendor field in the Item table
+    op.alter_column('item', 'item_vendor',
+               existing_type=sa.String(length=255),
+               type_=sa.String(),
+               existing_nullable=True)
+
+    # Revert the length of the item_params field in the Item table
+    op.alter_column('item', 'item_params',
+               existing_type=sa.String(length=255),
+               type_=sa.String(),
+               existing_nullable=True)
+
+    # Revert the length of the table_name field in the Borrowing table
+    op.alter_column('borrowing', 'table_name',
+               existing_type=sa.String(length=255),
+               type_=sa.String(),
+               existing_nullable=True)
+
+    # Revert the length of the system_name field in the Borrowing table
+    op.alter_column('borrowing', 'system_name',
+               existing_type=sa.String(length=255),
+               type_=sa.String(),
+               existing_nullable=True)

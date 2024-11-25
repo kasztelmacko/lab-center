@@ -5,7 +5,14 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Item, ItemCreate, ItemPublic, ItemsPublic, ItemUpdate, Message
+from app.models import (Item, 
+                        ItemCreate, 
+                        ItemPublic, 
+                        ItemsPublic, 
+                        ItemUpdate, 
+                        Message,
+                        Lab,
+                        UserLab)
 
 router = APIRouter()
 
@@ -18,25 +25,27 @@ def read_items(
     Retrieve items for a specific lab.
     """
 
-    if current_user.is_superuser:
-        count_statement = select(func.count()).select_from(Item).where(Item.lab_id == lab_id)
-        count = session.exec(count_statement).one()
-        statement = select(Item).where(Item.lab_id == lab_id).offset(skip).limit(limit)
-        items = session.exec(statement).all()
-    else:
-        count_statement = (
-            select(func.count())
-            .select_from(Item)
-            .where(Item.lab_id == lab_id, Item.owner_id == current_user.user_id)
-        )
-        count = session.exec(count_statement).one()
-        statement = (
-            select(Item)
-            .where(Item.lab_id == lab_id, Item.owner_id == current_user.user_id)
-            .offset(skip)
-            .limit(limit)
-        )
-        items = session.exec(statement).all()
+    # Check if the current user is the owner of the lab or has can_edit_items permission
+    lab = session.get(Lab, lab_id)
+    if not lab:
+        raise HTTPException(status_code=404, detail="Lab not found")
+    
+    if not current_user.is_superuser:
+        user_lab = session.exec(
+            select(UserLab).where(
+                UserLab.lab_id == lab_id,
+                UserLab.user_id == current_user.user_id
+            )
+        ).first()
+        
+        if not user_lab or not user_lab.can_edit_items:
+            raise HTTPException(status_code=400, detail="Not enough permissions")
+
+    # Retrieve all items for the lab
+    count_statement = select(func.count()).select_from(Item).where(Item.lab_id == lab_id)
+    count = session.exec(count_statement).one()
+    statement = select(Item).where(Item.lab_id == lab_id).offset(skip).limit(limit)
+    items = session.exec(statement).all()
 
     return ItemsPublic(data=items, count=count)
 
@@ -51,8 +60,18 @@ def read_item(
     item = session.get(Item, item_id)
     if not item or item.lab_id != lab_id:
         raise HTTPException(status_code=404, detail="Item not found")
-    if not current_user.is_superuser and (item.owner_id != current_user.user_id):
+    
+    # Check if the current user is associated with the lab
+    user_lab = session.exec(
+        select(UserLab).where(
+            UserLab.lab_id == lab_id,
+            UserLab.user_id == current_user.user_id
+        )
+    ).first()
+    
+    if not user_lab:
         raise HTTPException(status_code=400, detail="Not enough permissions")
+
     return item
 
 
@@ -63,6 +82,22 @@ def create_item(
     """
     Create new item for a specific lab.
     """
+    # Check if the current user is the owner of the lab or has can_edit_items permission
+    lab = session.get(Lab, lab_id)
+    if not lab:
+        raise HTTPException(status_code=404, detail="Lab not found")
+    
+    if not current_user.is_superuser:
+        user_lab = session.exec(
+            select(UserLab).where(
+                UserLab.lab_id == lab_id,
+                UserLab.user_id == current_user.user_id
+            )
+        ).first()
+        
+        if not user_lab or not user_lab.can_edit_items:
+            raise HTTPException(status_code=400, detail="Not enough permissions")
+
     item = Item.model_validate(item_in, update={"owner_id": current_user.user_id, "lab_id": lab_id})
     session.add(item)
     session.commit()
@@ -84,8 +119,19 @@ def update_item(
     item = session.get(Item, item_id)
     if not item or item.lab_id != lab_id:
         raise HTTPException(status_code=404, detail="Item not found")
-    if not current_user.is_superuser and (item.owner_id != current_user.user_id):
-        raise HTTPException(status_code=400, detail="Not enough permissions")
+    
+    # Check if the current user is the owner of the lab or has can_edit_items permission
+    if not current_user.is_superuser:
+        user_lab = session.exec(
+            select(UserLab).where(
+                UserLab.lab_id == lab_id,
+                UserLab.user_id == current_user.user_id
+            )
+        ).first()
+        
+        if not user_lab or not user_lab.can_edit_items:
+            raise HTTPException(status_code=400, detail="Not enough permissions")
+
     update_dict = item_in.model_dump(exclude_unset=True)
     item.sqlmodel_update(update_dict)
     session.add(item)
@@ -104,8 +150,19 @@ def delete_item(
     item = session.get(Item, item_id)
     if not item or item.lab_id != lab_id:
         raise HTTPException(status_code=404, detail="Item not found")
-    if not current_user.is_superuser and (item.owner_id != current_user.user_id):
-        raise HTTPException(status_code=400, detail="Not enough permissions")
+    
+    # Check if the current user is the owner of the lab or has can_edit_items permission
+    if not current_user.is_superuser:
+        user_lab = session.exec(
+            select(UserLab).where(
+                UserLab.lab_id == lab_id,
+                UserLab.user_id == current_user.user_id
+            )
+        ).first()
+        
+        if not user_lab or not user_lab.can_edit_items:
+            raise HTTPException(status_code=400, detail="Not enough permissions")
+
     session.delete(item)
     session.commit()
     return Message(message="Item deleted successfully")

@@ -60,8 +60,9 @@ class UsersPublic(SQLModel):
 
 # Shared properties for Lab
 class LabBase(SQLModel):
-    lab_name: str = Field(max_length=255)
-    description: str | None = Field(default=None, max_length=255)
+    lab_place: str | None = Field(default=None, max_length=255)  # type: ignore
+    lab_university: str | None = Field(default=None, max_length=255)
+    lab_num: str | None = Field(default=None, max_length=255)
 
 
 # Properties to receive via API on creation
@@ -71,8 +72,9 @@ class LabCreate(LabBase):
 
 # Properties to receive via API on update, all are optional
 class LabUpdate(LabBase):
-    lab_name: str | None = Field(default=None, max_length=255)  # type: ignore
-    description: str | None = Field(default=None, max_length=255)
+    lab_place: str | None = Field(default=None, max_length=255)  # type: ignore
+    lab_university: str | None = Field(default=None, max_length=255)
+    lab_num: str | None = Field(default=None, max_length=255)
 
 
 # Database model for Lab, database table inferred from class name
@@ -99,6 +101,9 @@ class LabsPublic(SQLModel):
 class ItemBase(SQLModel):
     item_name: str = Field(max_length=255)
     quantity: int = Field(default=0)
+    item_img_url: str | None = Field(default=None, max_length=255)
+    item_vendor: str | None = Field(default=None, max_length=255) 
+    item_params: str | None = Field(default=None, max_length=255)
     lab_id: uuid.UUID = Field(foreign_key="lab.lab_id", nullable=False, ondelete="CASCADE")
 
 
@@ -111,6 +116,9 @@ class ItemCreate(ItemBase):
 class ItemUpdate(ItemBase):
     item_name: str | None = Field(default=None, max_length=255)  # type: ignore
     quantity: int | None = Field(default=None)
+    item_img_url: str | None = Field(default=None, max_length=255)
+    item_vendor: str | None = Field(default=None, max_length=255)
+    item_params: str | None = Field(default=None, max_length=255)
     lab_id: uuid.UUID | None = Field(default=None, foreign_key="lab.lab_id", ondelete="CASCADE")
 
 
@@ -138,11 +146,22 @@ class UserLab(SQLModel, table=True):
     userlab_id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.user_id", nullable=False, ondelete="CASCADE")
     lab_id: uuid.UUID = Field(foreign_key="lab.lab_id", nullable=False, ondelete="CASCADE")
+    can_edit_lab: bool = Field(default=False)
+    can_edit_items: bool = Field(default=False)
+    can_edit_users: bool = Field(default=False)
     user: User | None = Relationship(back_populates="user_labs")
     lab: Lab | None = Relationship(back_populates="user_labs")
 
 class AddUsersToLab(SQLModel):
     emails: list[EmailStr]
+    can_edit_lab: bool = False
+    can_edit_items: bool = False
+    can_edit_users: bool = False
+
+class UpdateUserLab(SQLModel):
+    can_edit_lab: bool = False
+    can_edit_items: bool = False
+    can_edit_users: bool = False
 
 class RemoveUsersFromLab(SQLModel):
     emails: EmailStr
@@ -159,8 +178,10 @@ class Borrowing(SQLModel, table=True):
     item: Item | None = Relationship(back_populates="borrowings")
 
 class BorrowItem(SQLModel):
-    start_date: str
-    end_date: str
+    start_date: str 
+    end_date: str | None = Field(default=None)
+    table_name: str
+    system_name: str
 
 
 # Generic message

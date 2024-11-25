@@ -31,8 +31,9 @@ def upgrade():
 
     op.create_table(
         "lab",
-        sa.Column("lab_name", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-        sa.Column("description", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("lab_place", sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
+        sa.Column("lab_university", sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
+        sa.Column("lab_num", sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
         sa.Column("lab_id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
         sa.Column("owner_id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
         sa.ForeignKeyConstraint(
@@ -45,8 +46,11 @@ def upgrade():
 
     op.create_table(
         "item",
-        sa.Column("item_name", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("item_name", sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False),
         sa.Column("quantity", sa.Integer(), nullable=False, server_default="0"),
+        sa.Column("item_img_url", sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
+        sa.Column("item_vendor", sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
+        sa.Column("item_params", sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
         sa.Column("item_id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
         sa.Column("lab_id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
         sa.ForeignKeyConstraint(
@@ -63,6 +67,9 @@ def upgrade():
         sa.Column("userlab_id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
         sa.Column("user_id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
         sa.Column("lab_id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
+        sa.Column("can_edit_lab", sa.Boolean(), nullable=False, server_default="false"),
+        sa.Column("can_edit_items", sa.Boolean(), nullable=False, server_default="false"),
+        sa.Column("can_edit_users", sa.Boolean(), nullable=False, server_default="false"),
         sa.ForeignKeyConstraint(
             ["user_id"],
             ["user.user_id"],  # Corrected to reference the user table
@@ -83,6 +90,8 @@ def upgrade():
         sa.Column("item_id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
         sa.Column("borrowed_at", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.Column("returned_at", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("table_name", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("system_name", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.ForeignKeyConstraint(
             ["user_id"],
             ["user.user_id"],  # Corrected to reference the user table

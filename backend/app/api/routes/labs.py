@@ -29,12 +29,12 @@ def read_labs(
         count_statement = (
             select(func.count())
             .select_from(Lab)
-            .where(Lab.owner_id == current_user.id)
+            .where(Lab.owner_id == current_user.user_id)
         )
         count = session.exec(count_statement).one()
         statement = (
             select(Lab)
-            .where(Lab.owner_id == current_user.id)
+            .where(Lab.owner_id == current_user.user_id)
             .offset(skip)
             .limit(limit)
         )
@@ -44,14 +44,14 @@ def read_labs(
 
 
 @router.get("/{lab_id}", response_model=LabPublic)
-def read_lab(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:
+def read_lab(session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID) -> Any:
     """
     Get lab by ID.
     """
-    lab = session.get(Lab, id)
+    lab = session.get(Lab, lab_id)
     if not lab:
         raise HTTPException(status_code=404, detail="Lab not found")
-    if not current_user.is_superuser and (lab.owner_id != current_user.id):
+    if not current_user.is_superuser and (lab.owner_id != current_user.user_id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     return lab
 
@@ -63,7 +63,7 @@ def create_lab(
     """
     Create new lab.
     """
-    lab = Lab.model_validate(lab_in, update={"owner_id": current_user.id})
+    lab = Lab.model_validate(lab_in, update={"owner_id": current_user.user_id})
     session.add(lab)
     session.commit()
     session.refresh(lab)
@@ -75,16 +75,16 @@ def update_lab(
     *,
     session: SessionDep,
     current_user: CurrentUser,
-    id: uuid.UUID,
+    lab_id: uuid.UUID,
     lab_in: LabUpdate,
 ) -> Any:
     """
     Update a lab.
     """
-    lab = session.get(Lab, id)
+    lab = session.get(Lab, lab_id)
     if not lab:
         raise HTTPException(status_code=404, detail="Lab not found")
-    if not current_user.is_superuser and (lab.owner_id != current_user.id):
+    if not current_user.is_superuser and (lab.owner_id != current_user.user_id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     update_dict = lab_in.model_dump(exclude_unset=True)
     lab.sqlmodel_update(update_dict)
@@ -96,15 +96,15 @@ def update_lab(
 
 @router.delete("/{lab_id}")
 def delete_lab(
-    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+    session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID
 ) -> Message:
     """
     Delete a lab.
     """
-    lab = session.get(Lab, id)
+    lab = session.get(Lab, lab_id)
     if not lab:
         raise HTTPException(status_code=404, detail="Lab not found")
-    if not current_user.is_superuser and (lab.owner_id != current_user.id):
+    if not current_user.is_superuser and (lab.owner_id != current_user.user_id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     session.delete(lab)
     session.commit()
@@ -121,7 +121,7 @@ def add_users_to_lab(
     lab = session.get(Lab, lab_id)
     if not lab:
         raise HTTPException(status_code=404, detail="Lab not found")
-    if not current_user.is_superuser and (lab.owner_id != current_user.id):
+    if not current_user.is_superuser and (lab.owner_id != current_user.user_id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
 
     # Find users by their emails
@@ -137,7 +137,7 @@ def add_users_to_lab(
     # Create UserLab instances for each user and the lab
     user_labs = []
     for user in users:
-        user_lab = UserLab(user_id=user.id, lab_id=lab_id)
+        user_lab = UserLab(user_id=user.user_id, lab_id=lab_id)
         session.add(user_lab)
         user_labs.append(user_lab)
 
@@ -155,7 +155,7 @@ def remove_users_from_lab(
     lab = session.get(Lab, lab_id)
     if not lab:
         raise HTTPException(status_code=404, detail="Lab not found")
-    if not current_user.is_superuser and (lab.owner_id != current_user.id):
+    if not current_user.is_superuser and (lab.owner_id != current_user.user_id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
 
     # Find user by their emails
@@ -172,7 +172,7 @@ def remove_users_from_lab(
     user_labs_to_delete = session.exec(
         select(UserLab).where(
             UserLab.lab_id == lab_id,
-            UserLab.user_id.in_([user.id for user in user])
+            UserLab.user_id.in_([user.user_id for user in user])
         )
     ).all()
 
@@ -185,3 +185,5 @@ def remove_users_from_lab(
 
     session.commit()
     return Message(message="Users removed from lab successfully")
+
+

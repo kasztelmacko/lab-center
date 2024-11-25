@@ -26,7 +26,7 @@ def borrow_item(
     user_lab = session.exec(
         select(UserLab).where(
             UserLab.lab_id == lab_id,
-            UserLab.user_id == current_user.id
+            UserLab.user_id == current_user.user_id
         )
     ).first()
     if not user_lab:
@@ -55,7 +55,7 @@ def borrow_item(
 
     # Create a new Borrowing instance
     borrowing = Borrowing(
-        user_id=current_user.id,
+        user_id=current_user.user_id,
         item_id=item_id,
         borrowed_at=start_date.isoformat(),
         returned_at=end_date.isoformat()
@@ -81,7 +81,7 @@ def update_borrowing(
     user_lab = session.exec(
         select(UserLab).where(
             UserLab.lab_id == lab_id,
-            UserLab.user_id == current_user.id
+            UserLab.user_id == current_user.user_id
         )
     ).first()
     if not user_lab:
@@ -121,7 +121,7 @@ def delete_borrowing(
     user_lab = session.exec(
         select(UserLab).where(
             UserLab.lab_id == lab_id,
-            UserLab.user_id == current_user.id
+            UserLab.user_id == current_user.user_id
         )
     ).first()
     if not user_lab:
@@ -159,7 +159,7 @@ def view_all_borrowings(
     user_lab = session.exec(
         select(UserLab).where(
             UserLab.lab_id == lab_id,
-            UserLab.user_id == current_user.id
+            UserLab.user_id == current_user.user_id
         )
     ).first()
     if not user_lab:
@@ -195,7 +195,7 @@ def view_borrowing(
     user_lab = session.exec(
         select(UserLab).where(
             UserLab.lab_id == lab_id,
-            UserLab.user_id == current_user.id
+            UserLab.user_id == current_user.user_id
         )
     ).first()
     if not user_lab:

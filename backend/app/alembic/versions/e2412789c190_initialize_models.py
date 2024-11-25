@@ -37,7 +37,7 @@ def upgrade():
         sa.Column("owner_id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
         sa.ForeignKeyConstraint(
             ["owner_id"],
-            ["user_id"],
+            ["user.user_id"],  # Corrected to reference the user table
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("lab_id"),
@@ -49,7 +49,12 @@ def upgrade():
         sa.Column("quantity", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("item_id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
         sa.Column("lab_id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
-        sa.ForeignKeyConstraint("lab_id", ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["lab_id"],
+            ["lab.lab_id"],
+            name="item_lab_id_fkey",
+            ondelete="CASCADE",
+        ),
         sa.PrimaryKeyConstraint("item_id"),
     )
 
@@ -60,7 +65,12 @@ def upgrade():
         sa.Column("lab_id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
         sa.ForeignKeyConstraint(
             ["user_id"],
+            ["user.user_id"],  # Corrected to reference the user table
+            ondelete="CASCADE",
+        ),
+        sa.ForeignKeyConstraint(
             ["lab_id"],
+            ["lab.lab_id"],  # Corrected to reference the lab table
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("userlab_id"),
@@ -75,7 +85,12 @@ def upgrade():
         sa.Column("returned_at", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.ForeignKeyConstraint(
             ["user_id"],
+            ["user.user_id"],  # Corrected to reference the user table
+            ondelete="CASCADE",
+        ),
+        sa.ForeignKeyConstraint(
             ["item_id"],
+            ["item.item_id"],  # Corrected to reference the item table
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("borrow_id"),

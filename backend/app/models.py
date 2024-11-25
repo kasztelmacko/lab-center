@@ -50,7 +50,7 @@ class User(UserBase, table=True):
 
 # Properties to return via API for User, id is always required
 class UserPublic(UserBase):
-    id: uuid.UUID
+    user_id: uuid.UUID
 
 
 class UsersPublic(SQLModel):
@@ -78,7 +78,7 @@ class LabUpdate(LabBase):
 # Database model for Lab, database table inferred from class name
 class Lab(LabBase, table=True):
     lab_id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    owner_id: uuid.UUID = Field(foreign_key="user.user_id", nullable=False, ondelete="CASCADE")
     owner: User | None = Relationship(back_populates="labs")
     items: list["Item"] = Relationship(back_populates="lab")
     user_labs: list["UserLab"] = Relationship(back_populates="lab")
@@ -99,7 +99,7 @@ class LabsPublic(SQLModel):
 class ItemBase(SQLModel):
     item_name: str = Field(max_length=255)
     quantity: int = Field(default=0)
-    lab_id: uuid.UUID = Field(foreign_key="lab.id", nullable=False)
+    lab_id: uuid.UUID = Field(foreign_key="lab.lab_id", nullable=False, ondelete="CASCADE")
 
 
 # Properties to receive via API on creation
@@ -111,13 +111,13 @@ class ItemCreate(ItemBase):
 class ItemUpdate(ItemBase):
     item_name: str | None = Field(default=None, max_length=255)  # type: ignore
     quantity: int | None = Field(default=None)
-    lab_id: uuid.UUID | None = Field(default=None, foreign_key="lab.id")
+    lab_id: uuid.UUID | None = Field(default=None, foreign_key="lab.lab_id", ondelete="CASCADE")
 
 
 # Database model for Item, database table inferred from class name
 class Item(ItemBase, table=True):
     item_id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    lab_id: uuid.UUID = Field(foreign_key="lab.id", nullable=False, ondelete="CASCADE")
+    lab_id: uuid.UUID = Field(foreign_key="lab.lab_id", nullable=False, ondelete="CASCADE")
     lab: Lab | None = Relationship(back_populates="items")
     borrowings: list["Borrowing"] = Relationship(back_populates="item")
 
@@ -136,8 +136,8 @@ class ItemsPublic(SQLModel):
 # Database model for UserLab, database table inferred from class name
 class UserLab(SQLModel, table=True):
     userlab_id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
-    lab_id: uuid.UUID = Field(foreign_key="lab.id", nullable=False, ondelete="CASCADE")
+    user_id: uuid.UUID = Field(foreign_key="user.user_id", nullable=False, ondelete="CASCADE")
+    lab_id: uuid.UUID = Field(foreign_key="lab.lab_id", nullable=False, ondelete="CASCADE")
     user: User | None = Relationship(back_populates="user_labs")
     lab: Lab | None = Relationship(back_populates="user_labs")
 
@@ -151,8 +151,8 @@ class RemoveUsersFromLab(SQLModel):
 # Database model for Borrowing, database table inferred from class name
 class Borrowing(SQLModel, table=True):
     borrow_id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
-    item_id: uuid.UUID = Field(foreign_key="item.id", nullable=False, ondelete="CASCADE")
+    user_id: uuid.UUID = Field(foreign_key="user.user_id", nullable=False, ondelete="CASCADE")
+    item_id: uuid.UUID = Field(foreign_key="item.item_id", nullable=False, ondelete="CASCADE")
     borrowed_at: str | None = Field(default=None)
     returned_at: str | None = Field(default=None)
     user: User | None = Relationship(back_populates="borrowings")

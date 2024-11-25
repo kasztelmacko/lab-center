@@ -87,7 +87,7 @@ def update_user_me(
 
     if user_in.email:
         existing_user = crud.get_user_by_email(session=session, email=user_in.email)
-        if existing_user and existing_user.id != current_user.id:
+        if existing_user and existing_user.user_id != current_user.user_id:
             raise HTTPException(
                 status_code=409, detail="User with this email already exists"
             )
@@ -136,7 +136,7 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    statement = delete(Item).where(col(Item.owner_id) == current_user.id)
+    statement = delete(Item).where(col(Item.owner_id) == current_user.user_id)
     session.exec(statement)  # type: ignore
     session.delete(current_user)
     session.commit()
@@ -200,7 +200,7 @@ def update_user(
         )
     if user_in.email:
         existing_user = crud.get_user_by_email(session=session, email=user_in.email)
-        if existing_user and existing_user.id != user_id:
+        if existing_user and existing_user.user_id != user_id:
             raise HTTPException(
                 status_code=409, detail="User with this email already exists"
             )
@@ -239,7 +239,7 @@ def view_my_borrowings(
     # Get all borrowings for the current user
     borrowings = session.exec(
         select(Borrowing).where(
-            Borrowing.user_id == current_user.id
+            Borrowing.user_id == current_user.user_id
         )
     ).all()
 
@@ -255,7 +255,7 @@ def view_my_labs(
     # Get all labs for the current user
     user_labs = session.exec(
         select(UserLab).where(
-            UserLab.user_id == current_user.id
+            UserLab.user_id == current_user.user_id
         )
     ).all()
 

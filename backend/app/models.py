@@ -172,16 +172,20 @@ class Borrowing(SQLModel, table=True):
     borrow_id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.user_id", nullable=False, ondelete="CASCADE")
     item_id: uuid.UUID = Field(foreign_key="item.item_id", nullable=False, ondelete="CASCADE")
-    borrowed_at: str | None = Field(default=None)
+
+    borrowed_at: str
     returned_at: str | None = Field(default=None)
+    table_name: str | None = Field(default=None)
+    system_name: str | None = Field(default=None)
+
     user: User | None = Relationship(back_populates="borrowings")
     item: Item | None = Relationship(back_populates="borrowings")
 
 class BorrowItem(SQLModel):
     start_date: str 
     end_date: str | None = Field(default=None)
-    table_name: str
-    system_name: str
+    table_name: str | None = Field(default=None)
+    system_name: str | None = Field(default=None)
 
 
 # Generic message

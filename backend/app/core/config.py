@@ -101,7 +101,7 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER_PASSWORD: str
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
-        if value == "changethis":
+        if value == "tytuja321567":
             message = (
                 f'The value of {var_name} is "changethis", '
                 "for security, please change it, at least for deployments."

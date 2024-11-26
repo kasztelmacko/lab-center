@@ -6,13 +6,13 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Borrowing, BorrowItem, UserLab, Lab, Item, Message
+from app.models import Borrowing, BorrowCreate, UserLab, Lab, Item, Message
 
 router = APIRouter()
 
 @router.post("/{lab_id}/items/{item_id}/borrow", response_model=Message)
 def borrow_item(
-    *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID, item_id: uuid.UUID, borrow_item_in: BorrowItem
+    *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID, item_id: uuid.UUID, borrow_item_in: BorrowCreate
 ) -> Any:
     """
     Borrow an item from a lab by providing the start and end dates.
@@ -74,9 +74,45 @@ def borrow_item(
 
     return Message(message="Item borrowed successfully")
 
+@router.get("/{lab_id}/items/{item_id}/borrow", response_model=list[Borrowing])
+def view_borrowings(
+    *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID, item_id: uuid.UUID
+) -> Any:
+    """
+    View all borrowings for a specific item in a lab.
+    """
+    # Check if the current user is a member of the lab
+    lab = session.get(Lab, lab_id)
+    if not lab:
+        raise HTTPException(status_code=404, detail="Lab not found")
+    
+    # Check if the user is a member of the lab
+    user_lab = session.exec(
+        select(UserLab).where(
+            UserLab.lab_id == lab_id,
+            UserLab.user_id == current_user.user_id
+        )
+    ).first()
+    if not user_lab:
+        raise HTTPException(status_code=400, detail="User is not a member of the lab")
+
+    # Check if the item exists in the lab
+    item = session.get(Item, item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    # Get all borrowings for the item
+    borrowings = session.exec(
+        select(Borrowing).where(
+            Borrowing.item_id == item_id
+        )
+    ).all()
+
+    return borrowings
+
 @router.put("/{lab_id}/items/{item_id}/borrow/{borrow_id}", response_model=Message)
 def update_borrowing(
-    *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID, item_id: uuid.UUID, borrow_id: uuid.UUID, update_borrow_in: BorrowItem
+    *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID, item_id: uuid.UUID, borrow_id: uuid.UUID, update_borrow_in: BorrowCreate
 ) -> Any:
     """
     Update the return date, table_name, and system_name of a borrowing.
@@ -192,3 +228,5 @@ def view_borrowing(
         raise HTTPException(status_code=404, detail="Borrowing not found")
 
     return borrowing
+
+

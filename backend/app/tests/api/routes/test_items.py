@@ -6,13 +6,20 @@ from sqlmodel import Session
 from app.core.config import settings
 from app.tests.utils.item import create_random_item
 from app.tests.utils.labs import create_random_lab
+from app.tests.utils.utils import random_lower_string
 
 
 def test_create_item(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
-    lab = create_random_lab(db)  # Ensure you have this function defined
-    data = {"item_name": "Foo", "quantity": 3}
+    lab = create_random_lab(db)
+    data = {
+        "item_name": "Test item",
+        "quantity": 5,
+        "item_img_url": random_lower_string(),
+        "item_vendor": random_lower_string(),
+        "item_params": random_lower_string(),
+    }
     response = client.post(
         f"{settings.API_V1_STR}/labs/{lab.lab_id}/items",
         headers=superuser_token_headers,
@@ -22,6 +29,9 @@ def test_create_item(
     content = response.json()
     assert content["item_name"] == data["item_name"]
     assert content["quantity"] == data["quantity"]
+    assert content["item_img_url"] == data["item_img_url"]
+    assert content["item_vendor"] == data["item_vendor"]
+    assert content["item_params"] == data["item_params"]
     assert "item_id" in content
     assert "lab_id" in content
     assert content["lab_id"] == str(lab.lab_id)
@@ -40,6 +50,9 @@ def test_read_item(
     content = response.json()
     assert content["item_name"] == item.item_name
     assert content["quantity"] == item.quantity
+    assert content["item_img_url"] == item.item_img_url
+    assert content["item_vendor"] == item.item_vendor
+    assert content["item_params"] == item.item_params
     assert content["item_id"] == str(item.item_id)
     assert content["lab_id"] == str(item.lab_id)
 
@@ -76,7 +89,6 @@ def test_read_items(
 ) -> None:
     lab = create_random_lab(db)
     create_random_item(db)
-    create_random_item(db)
     response = client.get(
         f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/",
         headers=superuser_token_headers,
@@ -91,7 +103,13 @@ def test_update_item(
 ) -> None:
     lab = create_random_lab(db)
     item = create_random_item(db)
-    data = {"item_name": "Updated title", "quantity": 6}
+    data = {
+        "item_name": "Updated title",
+        "quantity": 6,
+        "item_img_url": random_lower_string(),
+        "item_vendor": random_lower_string(),
+        "item_params": random_lower_string(),
+    }
     response = client.put(
         f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}",
         headers=superuser_token_headers,
@@ -101,6 +119,9 @@ def test_update_item(
     content = response.json()
     assert content["item_name"] == data["item_name"]
     assert content["quantity"] == data["quantity"]
+    assert content["item_img_url"] == data["item_img_url"]
+    assert content["item_vendor"] == data["item_vendor"]
+    assert content["item_params"] == data["item_params"]
     assert content["item_id"] == str(item.item_id)
     assert content["lab_id"] == str(item.lab_id)
 
@@ -109,7 +130,13 @@ def test_update_item_not_found(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
     lab = create_random_lab(db)
-    data = {"item_name": "Updated title", "quantity": 6}
+    data = {
+        "item_name": "Updated title",
+        "quantity": 6,
+        "item_img_url": random_lower_string(),
+        "item_vendor": random_lower_string(),
+        "item_params": random_lower_string(),
+    }
     response = client.put(
         f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{uuid.uuid4()}",
         headers=superuser_token_headers,
@@ -125,7 +152,13 @@ def test_update_item_not_enough_permissions(
 ) -> None:
     lab = create_random_lab(db)
     item = create_random_item(db)
-    data = {"item_name": "Updated title", "quantity": 6}
+    data = {
+        "item_name": "Updated title",
+        "quantity": 6,
+        "item_img_url": random_lower_string(),
+        "item_vendor": random_lower_string(),
+        "item_params": random_lower_string(),
+    }
     response = client.put(
         f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}",
         headers=normal_user_token_headers,

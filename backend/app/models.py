@@ -181,12 +181,11 @@ class Borrowing(SQLModel, table=True):
     user: User | None = Relationship(back_populates="borrowings")
     item: Item | None = Relationship(back_populates="borrowings")
 
-class BorrowItem(SQLModel):
+class BorrowCreate(SQLModel):
     start_date: str 
     end_date: str | None = Field(default=None)
     table_name: str | None = Field(default=None)
     system_name: str | None = Field(default=None)
-
 
 # Generic message
 class Message(SQLModel):

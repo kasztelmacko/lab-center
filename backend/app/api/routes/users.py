@@ -229,7 +229,7 @@ def delete_user(
     session.commit()
     return Message(message="User deleted successfully")
 
-@router.get("/users/me/borrows", response_model=list[Borrowing])
+@router.get("/me/borrows", response_model=list[Borrowing])
 def view_my_borrowings(
     *, session: SessionDep, current_user: CurrentUser
 ) -> Any:
@@ -245,7 +245,7 @@ def view_my_borrowings(
 
     return borrowings
 
-@router.get("/users/me/labs", response_model=list[UserLab])
+@router.get("/me/labs", response_model=list[UserLab])
 def view_my_labs(
     *, session: SessionDep, current_user: CurrentUser
 ) -> Any:

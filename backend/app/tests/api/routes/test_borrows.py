@@ -7,6 +7,8 @@ from sqlmodel import Session
 from app.core.config import settings
 from app.tests.utils.item import create_random_item
 from app.tests.utils.labs import create_random_lab
+from app.tests.utils.borrows import create_random_borrow
+
 
 
 def test_borrow_item(
@@ -16,7 +18,12 @@ def test_borrow_item(
     item = create_random_item(db, lab_id=lab.lab_id)
     start_date = datetime.now().isoformat()
     end_date = (datetime.now() + timedelta(days=7)).isoformat()
-    data = {"start_date": start_date, "end_date": end_date}
+    data = {
+        "start_date": start_date, 
+        "end_date": end_date,
+        "table_name": "table_name",
+        "system_name": "system_name"
+        }
     response = client.post(
         f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow",
         headers=superuser_token_headers,
@@ -33,7 +40,12 @@ def test_borrow_item_not_found(
     lab = create_random_lab(db)
     start_date = datetime.now().isoformat()
     end_date = (datetime.now() + timedelta(days=7)).isoformat()
-    data = {"start_date": start_date, "end_date": end_date}
+    data = {
+        "start_date": start_date, 
+        "end_date": end_date,
+        "table_name": "table_name",
+        "system_name": "system_name"
+        }
     response = client.post(
         f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{uuid.uuid4()}/borrow",
         headers=superuser_token_headers,
@@ -51,7 +63,12 @@ def test_borrow_item_not_enough_permissions(
     item = create_random_item(db, lab_id=lab.lab_id)
     start_date = datetime.now().isoformat()
     end_date = (datetime.now() + timedelta(days=7)).isoformat()
-    data = {"start_date": start_date, "end_date": end_date}
+    data = {
+        "start_date": start_date, 
+        "end_date": end_date,
+        "table_name": "table_name",
+        "system_name": "system_name"
+        }
     response = client.post(
         f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow",
         headers=normal_user_token_headers,
@@ -67,9 +84,15 @@ def test_update_borrowing(
 ) -> None:
     lab = create_random_lab(db)
     item = create_random_item(db, lab_id=lab.lab_id)
+    borrow = create_random_borrow(db)
     start_date = datetime.now().isoformat()
     end_date = (datetime.now() + timedelta(days=7)).isoformat()
-    data = {"start_date": start_date, "end_date": end_date}
+    data = {
+        "start_date": start_date, 
+        "end_date": end_date,
+        "table_name": "table_name",
+        "system_name": "system_name"
+        }
     response = client.post(
         f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow",
         headers=superuser_token_headers,
@@ -77,12 +100,16 @@ def test_update_borrowing(
     )
     assert response.status_code == 200
     content = response.json()
-    borrow_id = content["borrow_id"]
 
     new_end_date = (datetime.now() + timedelta(days=14)).isoformat()
-    update_data = {"end_date": new_end_date}
+    update_data = {
+        "start_date": start_date, 
+        "end_date": end_date,
+        "table_name": "update table_name",
+        "system_name": "update system_name"
+        }
     response = client.put(
-        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow/{borrow_id}",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow/{borrow.borrow_id}",
         headers=superuser_token_headers,
         json=update_data,
     )
@@ -113,9 +140,15 @@ def test_update_borrowing_not_enough_permissions(
 ) -> None:
     lab = create_random_lab(db)
     item = create_random_item(db, lab_id=lab.lab_id)
+    borrow = create_random_borrow(db)
     start_date = datetime.now().isoformat()
     end_date = (datetime.now() + timedelta(days=7)).isoformat()
-    data = {"start_date": start_date, "end_date": end_date}
+    data = {
+        "start_date": start_date, 
+        "end_date": end_date,
+        "table_name": "table_name",
+        "system_name": "system_name"
+        }
     response = client.post(
         f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow",
         headers=normal_user_token_headers,
@@ -123,12 +156,16 @@ def test_update_borrowing_not_enough_permissions(
     )
     assert response.status_code == 200
     content = response.json()
-    borrow_id = content["borrow_id"]
 
     new_end_date = (datetime.now() + timedelta(days=14)).isoformat()
-    update_data = {"end_date": new_end_date}
+    update_data = {
+        "start_date": start_date, 
+        "end_date": end_date,
+        "table_name": "update table_name",
+        "system_name": "update system_name"
+        }
     response = client.put(
-        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow/{borrow_id}",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow/{borrow.borrow_id}",
         headers=normal_user_token_headers,
         json=update_data,
     )
@@ -142,9 +179,15 @@ def test_delete_borrowing(
 ) -> None:
     lab = create_random_lab(db)
     item = create_random_item(db, lab_id=lab.lab_id)
+    borrow = create_random_borrow(db)
     start_date = datetime.now().isoformat()
     end_date = (datetime.now() + timedelta(days=7)).isoformat()
-    data = {"start_date": start_date, "end_date": end_date}
+    data = {
+        "start_date": start_date, 
+        "end_date": end_date,
+        "table_name": "table_name",
+        "system_name": "system_name"
+        }
     response = client.post(
         f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow",
         headers=superuser_token_headers,
@@ -152,10 +195,9 @@ def test_delete_borrowing(
     )
     assert response.status_code == 200
     content = response.json()
-    borrow_id = content["borrow_id"]
 
     response = client.delete(
-        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow/{borrow_id}",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow/{borrow.borrow_id}",
         headers=superuser_token_headers,
     )
     assert response.status_code == 200
@@ -182,6 +224,7 @@ def test_delete_borrowing_not_enough_permissions(
 ) -> None:
     lab = create_random_lab(db)
     item = create_random_item(db, lab_id=lab.lab_id)
+    borrow = create_random_borrow(db)
     start_date = datetime.now().isoformat()
     end_date = (datetime.now() + timedelta(days=7)).isoformat()
     data = {"start_date": start_date, "end_date": end_date}
@@ -192,10 +235,9 @@ def test_delete_borrowing_not_enough_permissions(
     )
     assert response.status_code == 200
     content = response.json()
-    borrow_id = content["borrow_id"]
 
     response = client.delete(
-        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow/{borrow_id}",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow/{borrow.borrow_id}",
         headers=normal_user_token_headers,
     )
     assert response.status_code == 400
@@ -208,9 +250,7 @@ def test_view_all_borrowings(
 ) -> None:
     lab = create_random_lab(db)
     item = create_random_item(db, lab_id=lab.lab_id)
-    start_date = datetime.now().isoformat()
-    end_date = (datetime.now() + timedelta(days=7)).isoformat()
-    data = {"start_date": start_date, "end_date": end_date}
+    data = create_random_borrow(db)
     response = client.post(
         f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow",
         headers=superuser_token_headers,
@@ -259,9 +299,7 @@ def test_view_borrowing(
 ) -> None:
     lab = create_random_lab(db)
     item = create_random_item(db, lab_id=lab.lab_id)
-    start_date = datetime.now().isoformat()
-    end_date = (datetime.now() + timedelta(days=7)).isoformat()
-    data = {"start_date": start_date, "end_date": end_date}
+    data = create_random_borrow(db)
     response = client.post(
         f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow",
         headers=superuser_token_headers,
@@ -269,15 +307,14 @@ def test_view_borrowing(
     )
     assert response.status_code == 200
     content = response.json()
-    borrow_id = content["borrow_id"]
 
     response = client.get(
-        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow/{borrow_id}",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow/{data.borrow_id}",
         headers=superuser_token_headers,
     )
     assert response.status_code == 200
     content = response.json()
-    assert content["borrow_id"] == borrow_id
+    assert content["borrow_id"] == data.borrow_id
 
 
 def test_view_borrowing_not_found(
@@ -299,9 +336,7 @@ def test_view_borrowing_not_enough_permissions(
 ) -> None:
     lab = create_random_lab(db)
     item = create_random_item(db, lab_id=lab.lab_id)
-    start_date = datetime.now().isoformat()
-    end_date = (datetime.now() + timedelta(days=7)).isoformat()
-    data = {"start_date": start_date, "end_date": end_date}
+    data = create_random_borrow(db)
     response = client.post(
         f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow",
         headers=normal_user_token_headers,
@@ -309,10 +344,9 @@ def test_view_borrowing_not_enough_permissions(
     )
     assert response.status_code == 200
     content = response.json()
-    borrow_id = content["borrow_id"]
 
     response = client.get(
-        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow/{borrow_id}",
+        f"{settings.API_V1_STR}/labs/{lab.lab_id}/items/{item.item_id}/borrow/{data.borrow_id}",
         headers=normal_user_token_headers,
     )
     assert response.status_code == 400

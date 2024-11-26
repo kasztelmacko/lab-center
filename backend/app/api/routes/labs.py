@@ -179,7 +179,97 @@ def add_users_to_lab(
     session.commit()
     return Message(message="Users added to lab successfully with specified permissions")
 
-@router.delete("/{lab_id}/remove-user/{user_id}", response_model=Message)
+@router.get("/{lab_id}/users", response_model=list[User])
+def view_lab_users(
+    *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID
+) -> Any:
+    """
+    View all users in a specific lab with their permissions.
+    """
+    # Check if the current user is the owner of the lab or a superuser
+    lab = session.get(Lab, lab_id)
+    if not lab:
+        raise HTTPException(status_code=404, detail="Lab not found")
+    if not current_user.is_superuser and (lab.owner_id != current_user.user_id):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+
+    # Get all UserLab instances for the lab
+    user_labs = session.exec(
+        select(UserLab).where(
+            UserLab.lab_id == lab_id
+        )
+    ).all()
+
+    # Get the associated users
+    user_ids = [user_lab.user_id for user_lab in user_labs]
+    users = session.exec(
+        select(User).where(
+            User.user_id.in_(user_ids)
+        )
+    ).all()
+
+    # Include permissions in the response
+    users_with_permissions = []
+    for user in users:
+        user_lab = next((ul for ul in user_labs if ul.user_id == user.user_id), None)
+        if user_lab:
+            user_with_permissions = user.copy()
+            user_with_permissions.can_edit_lab = user_lab.can_edit_lab
+            user_with_permissions.can_edit_items = user_lab.can_edit_items
+            user_with_permissions.can_edit_users = user_lab.can_edit_users
+            users_with_permissions.append(user_with_permissions)
+
+    return users_with_permissions
+
+@router.get("/{lab_id}/users/{user_id}", response_model=User)
+def view_user_in_lab(
+    *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID, user_id: uuid.UUID
+) -> Any:
+    """
+    View a specific user in a lab.
+    """
+    # Check if the current user is part of the lab
+    lab = session.get(Lab, lab_id)
+    if not lab:
+        raise HTTPException(status_code=404, detail="Lab not found")
+
+    # Check if the current user is part of the lab
+    current_user_lab = session.exec(
+        select(UserLab).where(
+            UserLab.lab_id == lab_id,
+            UserLab.user_id == current_user.user_id
+        )
+    ).first()
+
+    if not current_user_lab:
+        raise HTTPException(status_code=403, detail="You are not part of this lab")
+
+    # Find the user by their user ID
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User with ID {user_id} not found")
+
+    # Check if the user is part of the lab
+    user_lab = session.exec(
+        select(UserLab).where(
+            UserLab.lab_id == lab_id,
+            UserLab.user_id == user.user_id
+        )
+    ).first()
+
+    if not user_lab:
+        raise HTTPException(status_code=404, detail=f"User with ID {user.user_id} is not associated with this lab")
+
+    # Include permissions in the response
+    user_with_permissions = user.copy()
+    user_with_permissions.can_edit_lab = user_lab.can_edit_lab
+    user_with_permissions.can_edit_items = user_lab.can_edit_items
+    user_with_permissions.can_edit_users = user_lab.can_edit_users
+
+    return user_with_permissions
+
+
+@router.delete("/{lab_id}/users/{user_id}/remove-user", response_model=Message)
 def remove_users_from_lab(
     *,
     session: SessionDep,
@@ -228,7 +318,7 @@ def remove_users_from_lab(
     session.commit()
     return Message(message="User removed from lab successfully")
 
-@router.put("/{lab_id}/update-user-permissions/{user_id}", response_model=Message)
+@router.put("/{lab_id}/users/{user_id}/update-user-permissions", response_model=Message)
 def update_user_permissions(
     *,
     session: SessionDep,
@@ -280,46 +370,6 @@ def update_user_permissions(
     session.commit()
     return Message(message="User permissions updated successfully")
 
-@router.get("/{lab_id}/users", response_model=list[User])
-def view_lab_users(
-    *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID
-) -> Any:
-    """
-    View all users in a specific lab with their permissions.
-    """
-    # Check if the current user is the owner of the lab or a superuser
-    lab = session.get(Lab, lab_id)
-    if not lab:
-        raise HTTPException(status_code=404, detail="Lab not found")
-    if not current_user.is_superuser and (lab.owner_id != current_user.user_id):
-        raise HTTPException(status_code=400, detail="Not enough permissions")
 
-    # Get all UserLab instances for the lab
-    user_labs = session.exec(
-        select(UserLab).where(
-            UserLab.lab_id == lab_id
-        )
-    ).all()
-
-    # Get the associated users
-    user_ids = [user_lab.user_id for user_lab in user_labs]
-    users = session.exec(
-        select(User).where(
-            User.user_id.in_(user_ids)
-        )
-    ).all()
-
-    # Include permissions in the response
-    users_with_permissions = []
-    for user in users:
-        user_lab = next((ul for ul in user_labs if ul.user_id == user.user_id), None)
-        if user_lab:
-            user_with_permissions = user.copy()
-            user_with_permissions.can_edit_lab = user_lab.can_edit_lab
-            user_with_permissions.can_edit_items = user_lab.can_edit_items
-            user_with_permissions.can_edit_users = user_lab.can_edit_users
-            users_with_permissions.append(user_with_permissions)
-
-    return users_with_permissions
 
 

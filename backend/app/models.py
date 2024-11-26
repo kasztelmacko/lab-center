@@ -164,7 +164,7 @@ class UpdateUserLab(SQLModel):
     can_edit_users: bool = False
 
 class RemoveUsersFromLab(SQLModel):
-    emails: EmailStr
+    user_ids: list[uuid.UUID]
 
 
 # Database model for Borrowing, database table inferred from class name

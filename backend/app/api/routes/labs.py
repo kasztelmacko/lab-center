@@ -179,12 +179,16 @@ def add_users_to_lab(
     session.commit()
     return Message(message="Users added to lab successfully with specified permissions")
 
-@router.delete("/{lab_id}/remove-user", response_model=Message)
+@router.delete("/{lab_id}/remove-user/{user_id}", response_model=Message)
 def remove_users_from_lab(
-    *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID, remove_user_in: RemoveUsersFromLab
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    lab_id: uuid.UUID,
+    user_id: uuid.UUID
 ) -> Any:
     """
-    Remove users from a lab by providing a list of emails.
+    Remove a user from a lab by providing the user ID.
     """
     # Check if the current user is the owner of the lab or has can_edit_users permission
     lab = session.get(Lab, lab_id)
@@ -200,42 +204,41 @@ def remove_users_from_lab(
         ).first()
         
         if not user_lab or not user_lab.can_edit_users:
-            raise HTTPException(status_code=400, detail="Not enough permissions")
+            raise HTTPException(status_code=403, detail="Not enough permissions")
 
-    # Find user by their emails
-    emails = remove_user_in.emails
-    users = session.exec(select(User).where(User.email.in_(emails))).all()
+    # Find the user by their user ID
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User with ID {user_id} not found")
 
-    # Check if user was found
-    found_emails = {user.email for user in users}
-    not_found_emails = set(emails) - found_emails
-    if not_found_emails:
-        raise HTTPException(status_code=404, detail=f"User with emails {not_found_emails} not found")
-
-    # Find UserLab instances to delete
-    user_labs_to_delete = session.exec(
+    # Find UserLab instance to delete
+    user_lab_to_delete = session.exec(
         select(UserLab).where(
             UserLab.lab_id == lab_id,
-            UserLab.user_id.in_([user.user_id for user in users])
+            UserLab.user_id == user.user_id
         )
-    ).all()
+    ).first()
 
-    if not user_labs_to_delete:
-        raise HTTPException(status_code=404, detail="No matching UserLab instances found")
+    if not user_lab_to_delete:
+        raise HTTPException(status_code=404, detail=f"User with ID {user.user_id} is not associated with this lab")
 
-    # Delete UserLab instances
-    for user_lab in user_labs_to_delete:
-        session.delete(user_lab)
+    # Delete UserLab instance
+    session.delete(user_lab_to_delete)
 
     session.commit()
-    return Message(message="Users removed from lab successfully")
+    return Message(message="User removed from lab successfully")
 
-@router.put("/{lab_id}/update-user-permissions", response_model=Message)
+@router.put("/{lab_id}/update-user-permissions/{user_id}", response_model=Message)
 def update_user_permissions(
-    *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID, update_permissions_in: UpdateUserLab
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    lab_id: uuid.UUID,
+    user_id: uuid.UUID,
+    update_permissions_in: UpdateUserLab
 ) -> Any:
     """
-    Update user permissions in a lab by providing a list of emails and their new permissions.
+    Update user permissions in a lab by providing a list of user IDs and their new permissions.
     """
     # Check if the current user is the owner of the lab or has can_edit_users permission
     lab = session.get(Lab, lab_id)
@@ -251,34 +254,28 @@ def update_user_permissions(
         ).first()
         
         if not user_lab or not user_lab.can_edit_users:
-            raise HTTPException(status_code=400, detail="Not enough permissions")
+            raise HTTPException(status_code=403, detail="Not enough permissions")
 
-    # Find users by their emails
-    emails = update_permissions_in.emails
-    users = session.exec(select(User).where(User.email.in_(emails))).all()
+    # Find the user by their user ID
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User with ID {user_id} not found")
 
-    # Check if all users were found
-    found_emails = {user.email for user in users}
-    not_found_emails = set(emails) - found_emails
-    if not_found_emails:
-        raise HTTPException(status_code=404, detail=f"Users with emails {not_found_emails} not found")
-
-    # Update UserLab instances for each user and the lab with new permissions
-    for user in users:
-        user_lab = session.exec(
-            select(UserLab).where(
-                UserLab.lab_id == lab_id,
-                UserLab.user_id == user.user_id
-            )
-        ).first()
-        
-        if not user_lab:
-            raise HTTPException(status_code=404, detail=f"User with email {user.email} is not associated with this lab")
-        
-        user_lab.can_edit_lab = update_permissions_in.can_edit_lab
-        user_lab.can_edit_items = update_permissions_in.can_edit_items
-        user_lab.can_edit_users = update_permissions_in.can_edit_users
-        session.add(user_lab)
+    # Update UserLab instance for the user and the lab with new permissions
+    user_lab = session.exec(
+        select(UserLab).where(
+            UserLab.lab_id == lab_id,
+            UserLab.user_id == user.user_id
+        )
+    ).first()
+    
+    if not user_lab:
+        raise HTTPException(status_code=404, detail=f"User with ID {user.user_id} is not associated with this lab")
+    
+    user_lab.can_edit_lab = update_permissions_in.can_edit_lab
+    user_lab.can_edit_items = update_permissions_in.can_edit_items
+    user_lab.can_edit_users = update_permissions_in.can_edit_users
+    session.add(user_lab)
 
     session.commit()
     return Message(message="User permissions updated successfully")

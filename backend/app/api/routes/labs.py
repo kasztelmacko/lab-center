@@ -2,7 +2,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from sqlmodel import func, select
+from sqlmodel import func, select, delete, col
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (Lab, LabCreate, LabPublic, LabsPublic, LabUpdate, 
@@ -65,9 +65,28 @@ def create_lab(
     Create new lab.
     """
     lab = Lab.model_validate(lab_in, update={"owner_id": current_user.user_id})
+
     session.add(lab)
     session.commit()
     session.refresh(lab)
+
+    print(lab)
+
+    # Create a new UserLab entry
+    user_lab = UserLab(
+        user_id=current_user.user_id,
+        lab_id=lab.lab_id,
+        can_edit_lab=True,
+        can_edit_items=True,
+        can_edit_users=True
+    )
+
+    print(user_lab)
+
+    session.add(user_lab)
+    session.commit()
+    session.refresh(user_lab)
+
     return lab
 
 
@@ -89,10 +108,12 @@ def update_lab(
     if not current_user.is_superuser:
         user_lab = session.exec(
             select(UserLab).where(
-                UserLab.lab_id == lab_id,
+                UserLab.lab_id == lab.lab_id,
                 UserLab.user_id == current_user.user_id
             )
         ).first()
+
+        print(user_lab)
         
         if not user_lab or not user_lab.can_edit_lab:
             raise HTTPException(status_code=400, detail="Not enough permissions")
@@ -118,16 +139,20 @@ def delete_lab(
     if not current_user.is_superuser:
         user_lab = session.exec(
             select(UserLab).where(
-                UserLab.lab_id == lab_id,
+                UserLab.lab_id == lab.lab_id,
                 UserLab.user_id == current_user.user_id
             )
         ).first()
-        
+
         if not user_lab or not user_lab.can_edit_lab:
             raise HTTPException(status_code=400, detail="Not enough permissions")
-
+    
+    # Delete the lab
+    statement = delete(UserLab).where(col(UserLab.lab_id) == lab.lab_id)
+    session.exec(statement)
     session.delete(lab)
     session.commit()
+    
     return Message(message="Lab deleted successfully")
 
 @router.post("/{lab_id}/add-users", response_model=Message)
@@ -369,7 +394,3 @@ def update_user_permissions(
 
     session.commit()
     return Message(message="User permissions updated successfully")
-
-
-
-

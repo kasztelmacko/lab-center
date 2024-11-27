@@ -36,9 +36,9 @@ import {
       mode: "onBlur",
       criteriaMode: "all",
       defaultValues: {
-        lab_place: "IMiF",
-        lab_university: "UW",
-        lab_num: "B4.32",
+        lab_place: "",
+        lab_university: "",
+        lab_num: "",
       },
     })
   

@@ -143,6 +143,7 @@ class ItemsPublic(SQLModel):
 
 # Database model for UserLab, database table inferred from class name
 class UserLab(SQLModel, table=True):
+    __tablename__ = "user_lab"
     userlab_id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.user_id", nullable=False, ondelete="CASCADE")
     lab_id: uuid.UUID = Field(foreign_key="lab.lab_id", nullable=False, ondelete="CASCADE")

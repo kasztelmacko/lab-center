@@ -12,20 +12,31 @@ export type HTTPValidationError = {
 }
 
 export type ItemCreate = {
-  title: string
-  description?: string | null
+  item_name: string
+  quantity?: number
+  item_img_url?: string | null
+  item_vendor?: string | null
+  item_params?: string | null
+  lab_id: string
 }
 
 export type ItemPublic = {
-  title: string
-  description?: string | null
-  id: string
-  owner_id: string
+  item_name: string
+  quantity?: number
+  item_img_url?: string | null
+  item_vendor?: string | null
+  item_params?: string | null
+  lab_id: string
+  item_id: string
 }
 
 export type ItemUpdate = {
-  title?: string | null
-  description?: string | null
+  item_name?: string | null
+  quantity?: number | null
+  item_img_url?: string | null
+  item_vendor?: string | null
+  item_params?: string | null
+  lab_id?: string | null
 }
 
 export type ItemsPublic = {
@@ -65,7 +76,7 @@ export type UserPublic = {
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
-  id: string
+  user_id: string
 }
 
 export type UserRegister = {
@@ -96,4 +107,68 @@ export type ValidationError = {
   loc: Array<string | number>
   msg: string
   type: string
+}
+
+export type LabCreate = {
+  lab_place?: string | null
+  lab_university?: string | null
+  lab_num?: string | null
+}
+
+export type LabPublic = {
+  lab_place?: string | null
+  lab_university?: string | null
+  lab_num?: string | null
+  lab_id: string
+  owner_id: string
+}
+
+export type LabUpdate = {
+  lab_place?: string | null
+  lab_university?: string | null
+  lab_num?: string | null
+  lab_id: string
+  owner_id: string
+}
+
+export type LabsPublic = {
+  data: Array<LabPublic>
+  count: number
+}
+
+export type UserLab = {
+  userlab_id: string
+  user_id: string
+  lab_id: string
+  can_edit_lab: boolean
+  can_edit_items: boolean
+  can_edit_users: boolean
+}
+
+export type AddUsersToLab = {
+  emails: Array<string>
+  can_edit_lab?: boolean
+  can_edit_items?: boolean
+  can_edit_users?: boolean
+}
+
+export type UpdateUserLab = {
+  can_edit_lab?: boolean
+  can_edit_items?: boolean
+  can_edit_users?: boolean
+}
+
+export type RemoveUsersFromLab = {
+  user_ids: Array<string>
+}
+
+export type BorrowCreate = {
+  start_date: string
+  end_date?: string | null
+  table_name?: string | null
+  system_name?: string | null
+}
+
+export type TokenPayload = {
+  sub?: string | null
 }

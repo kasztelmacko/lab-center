@@ -95,14 +95,14 @@ function UsersTable() {
           ) : (
             <Tbody>
               {users?.data.map((user) => (
-                <Tr key={user.id}>
+                <Tr key={user.user_id}>
                   <Td
                     color={!user.full_name ? "ui.dim" : "inherit"}
                     isTruncated
                     maxWidth="150px"
                   >
                     {user.full_name || "N/A"}
-                    {currentUser?.id === user.id && (
+                    {currentUser?.user_id === user.user_id && (
                       <Badge ml="1" colorScheme="teal">
                         You
                       </Badge>
@@ -128,7 +128,7 @@ function UsersTable() {
                     <ActionsMenu
                       type="User"
                       value={user}
-                      disabled={currentUser?.id === user.id}
+                      disabled={currentUser?.user_id === user.user_id}
                     />
                   </Td>
                 </Tr>

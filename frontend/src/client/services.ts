@@ -18,6 +18,14 @@ import type {
   ItemPublic,
   ItemsPublic,
   ItemUpdate,
+  LabCreate,
+  LabPublic,
+  LabsPublic,
+  LabUpdate,
+  AddUsersToLab,
+  RemoveUsersFromLab,
+  UpdateUserLab,
+  BorrowCreate
 } from "./models"
 
 export type TDataLoginAccessToken = {
@@ -151,14 +159,14 @@ export type TDataRegisterUser = {
   requestBody: UserRegister
 }
 export type TDataReadUserById = {
-  userId: string
+  user_id: string
 }
 export type TDataUpdateUser = {
   requestBody: UserUpdate
-  userId: string
+  user_id: string
 }
 export type TDataDeleteUser = {
-  userId: string
+  user_id: string
 }
 
 export class UsersService {
@@ -304,12 +312,12 @@ export class UsersService {
   public static readUserById(
     data: TDataReadUserById,
   ): CancelablePromise<UserPublic> {
-    const { userId } = data
+    const { user_id } = data
     return __request(OpenAPI, {
       method: "GET",
       url: "/api/v1/users/{user_id}",
       path: {
-        user_id: userId,
+        user_id: user_id,
       },
       errors: {
         422: `Validation Error`,
@@ -326,12 +334,12 @@ export class UsersService {
   public static updateUser(
     data: TDataUpdateUser,
   ): CancelablePromise<UserPublic> {
-    const { requestBody, userId } = data
+    const { requestBody, user_id } = data
     return __request(OpenAPI, {
       method: "PATCH",
       url: "/api/v1/users/{user_id}",
       path: {
-        user_id: userId,
+        user_id: user_id,
       },
       body: requestBody,
       mediaType: "application/json",
@@ -348,12 +356,12 @@ export class UsersService {
    * @throws ApiError
    */
   public static deleteUser(data: TDataDeleteUser): CancelablePromise<Message> {
-    const { userId } = data
+    const { user_id } = data
     return __request(OpenAPI, {
       method: "DELETE",
       url: "/api/v1/users/{user_id}",
       path: {
-        user_id: userId,
+        user_id: user_id,
       },
       errors: {
         422: `Validation Error`,
@@ -400,38 +408,324 @@ export class UtilsService {
   }
 }
 
-export type TDataReadItems = {
+export type TDataReadLabs = {
   limit?: number
   skip?: number
 }
+
+export type TDataCreateLab = {
+  requestBody: LabCreate
+}
+
+export type TDataReadLab = {
+  lab_id: string
+}
+
+export type TDataUpdateLab = {
+  lab_id: string
+  requestBody: LabUpdate
+}
+
+export type TDataDeleteLab = {
+  lab_id: string
+}
+
+export type TDataAddUsersToLab = {
+  lab_id: string
+  requestBody: AddUsersToLab
+}
+
+export type TDataViewLabUsers = {
+  lab_id: string
+}
+
+export type TDataViewUserInLab = {
+  lab_id: string
+  user_id: string
+}
+
+export type TDataRemoveUserFromLab = {
+  lab_id: string
+  user_id: string
+}
+
+export type TDataUpdateUserPermissions = {
+  lab_id: string
+  user_id: string
+  requestBody: UpdateUserLab
+}
+
+export class LabsService {
+  /**
+   * Read Labs
+   * Retrieve labs.
+   * @returns LabsPublic Successful Response
+   * @throws ApiError
+   */
+  public static readLabs(
+    data: TDataReadLabs = {},
+  ): CancelablePromise<LabsPublic> {
+    const { limit = 100, skip = 0 } = data
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/labs/",
+      query: {
+        skip,
+        limit,
+      },
+      errors: {
+        422: `Validation Error`,
+      },
+    })
+  }
+
+  /**
+   * Create Lab
+   * Create new lab.
+   * @returns LabPublic Successful Response
+   * @throws ApiError
+   */
+  public static createLab(
+    data: TDataCreateLab,
+  ): CancelablePromise<LabPublic> {
+    const { requestBody } = data
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/labs/",
+      body: requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: `Validation Error`,
+      },
+    })
+  }
+
+  /**
+   * Read Lab
+   * Get lab by ID.
+   * @returns LabPublic Successful Response
+   * @throws ApiError
+   */
+  public static readLab(data: TDataReadLab): CancelablePromise<LabPublic> {
+    const { lab_id } = data
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/labs/{lab_id}",
+      path: {
+        lab_id,
+      },
+      errors: {
+        422: `Validation Error`,
+      },
+    })
+  }
+
+  /**
+   * Update Lab
+   * Update a lab.
+   * @returns LabPublic Successful Response
+   * @throws ApiError
+   */
+  public static updateLab(
+    data: TDataUpdateLab,
+  ): CancelablePromise<LabPublic> {
+    const { lab_id, requestBody } = data
+    return __request(OpenAPI, {
+      method: "PUT",
+      url: "/api/v1/labs/{lab_id}",
+      path: {
+        lab_id,
+      },
+      body: requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: `Validation Error`,
+      },
+    })
+  }
+
+  /**
+   * Delete Lab
+   * Delete a lab.
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static deleteLab(data: TDataDeleteLab): CancelablePromise<Message> {
+    const { lab_id } = data
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/labs/{lab_id}",
+      path: {
+        lab_id,
+      },
+      errors: {
+        422: `Validation Error`,
+      },
+    })
+  }
+
+  /**
+   * Add Users to Lab
+   * Add users to a lab by providing a list of emails and their permissions.
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static addUsersToLab(
+    data: TDataAddUsersToLab,
+  ): CancelablePromise<Message> {
+    const { lab_id, requestBody } = data
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/labs/{lab_id}/add-users",
+      path: {
+        lab_id,
+      },
+      body: requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: `Validation Error`,
+      },
+    })
+  }
+
+  /**
+   * View Lab Users
+   * View all users in a specific lab with their permissions.
+   * @returns Array<User> Successful Response
+   * @throws ApiError
+   */
+  public static viewLabUsers(
+    data: TDataViewLabUsers,
+  ): CancelablePromise<Array<UsersPublic>> {
+    const { lab_id } = data
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/labs/{lab_id}/users",
+      path: {
+        lab_id,
+      },
+      errors: {
+        422: `Validation Error`,
+      },
+    })
+  }
+
+  /**
+   * View User in Lab
+   * View a specific user in a lab.
+   * @returns User Successful Response
+   * @throws ApiError
+   */
+  public static viewUserInLab(
+    data: TDataViewUserInLab,
+  ): CancelablePromise<UsersPublic> {
+    const { lab_id, user_id } = data
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/labs/{lab_id}/users/{user_id}",
+      path: {
+        lab_id,
+        user_id,
+      },
+      errors: {
+        422: `Validation Error`,
+      },
+    })
+  }
+
+  // /**
+  //  * Remove User from Lab
+  //  * Remove a user from a lab by providing the user ID.
+  //  * @returns Message Successful Response
+  //  * @throws ApiError
+  //  */
+  // public static removeUserFromLab(
+  //   data: TDataRemoveUserFromLab,
+  // ): CancelablePromise<Message> {
+  //   const { lab_id, user_id } = data
+  //   return __request(OpenAPI, {
+  //     method: "DELETE",
+  //     url: "/api/v1/labs/{lab_id}/users/{user_id}/remove-user",
+  //     path: {
+  //       lab_id,
+  //       user_id,
+  //     },
+  //     errors: {
+  //       422: `Validation Error`,
+  //     },
+  //   })
+  // }
+
+  /**
+   * Update User Permissions
+   * Update user permissions in a lab by providing a list of user IDs and their new permissions.
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static updateUserPermissions(
+    data: TDataUpdateUserPermissions,
+  ): CancelablePromise<Message> {
+    const { lab_id, user_id, requestBody } = data
+    return __request(OpenAPI, {
+      method: "PUT",
+      url: "/api/v1/labs/{lab_id}/users/{user_id}/update-user-permissions",
+      path: {
+        lab_id,
+        user_id,
+      },
+      body: requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: `Validation Error`,
+      },
+    })
+  }
+}
+
+export type TDataReadItems = {
+  lab_id: string
+  limit?: number
+  skip?: number
+}
+
 export type TDataCreateItem = {
+  lab_id: string
   requestBody: ItemCreate
 }
+
 export type TDataReadItem = {
-  id: string
+  lab_id: string
+  item_id: string
 }
+
 export type TDataUpdateItem = {
-  id: string
+  lab_id: string
+  item_id: string
   requestBody: ItemUpdate
 }
+
 export type TDataDeleteItem = {
-  id: string
+  lab_id: string
+  item_id: string
 }
 
 export class ItemsService {
   /**
    * Read Items
-   * Retrieve items.
+   * Retrieve items for a specific lab.
    * @returns ItemsPublic Successful Response
    * @throws ApiError
    */
   public static readItems(
-    data: TDataReadItems = {},
+    data: TDataReadItems,
   ): CancelablePromise<ItemsPublic> {
-    const { limit = 100, skip = 0 } = data
+    const { lab_id, limit = 100, skip = 0 } = data
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/items/",
+      url: "/api/v1/labs/{lab_id}/items",
+      path: {
+        lab_id,
+      },
       query: {
         skip,
         limit,
@@ -444,17 +738,20 @@ export class ItemsService {
 
   /**
    * Create Item
-   * Create new item.
+   * Create new item for a specific lab.
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
   public static createItem(
     data: TDataCreateItem,
   ): CancelablePromise<ItemPublic> {
-    const { requestBody } = data
+    const { lab_id, requestBody } = data
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/items/",
+      url: "/api/v1/labs/{lab_id}/items",
+      path: {
+        lab_id,
+      },
       body: requestBody,
       mediaType: "application/json",
       errors: {
@@ -465,17 +762,18 @@ export class ItemsService {
 
   /**
    * Read Item
-   * Get item by ID.
+   * Get item by ID for a specific lab.
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
   public static readItem(data: TDataReadItem): CancelablePromise<ItemPublic> {
-    const { id } = data
+    const { lab_id, item_id } = data
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/items/{id}",
+      url: "/api/v1/labs/{lab_id}/items/{item_id}",
       path: {
-        id,
+        lab_id,
+        item_id,
       },
       errors: {
         422: `Validation Error`,
@@ -485,19 +783,20 @@ export class ItemsService {
 
   /**
    * Update Item
-   * Update an item.
+   * Update an item for a specific lab.
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
   public static updateItem(
     data: TDataUpdateItem,
   ): CancelablePromise<ItemPublic> {
-    const { id, requestBody } = data
+    const { lab_id, item_id, requestBody } = data
     return __request(OpenAPI, {
       method: "PUT",
-      url: "/api/v1/items/{id}",
+      url: "/api/v1/labs/{lab_id}/items/{item_id}",
       path: {
-        id,
+        lab_id,
+        item_id,
       },
       body: requestBody,
       mediaType: "application/json",
@@ -509,17 +808,18 @@ export class ItemsService {
 
   /**
    * Delete Item
-   * Delete an item.
+   * Delete an item for a specific lab.
    * @returns Message Successful Response
    * @throws ApiError
    */
   public static deleteItem(data: TDataDeleteItem): CancelablePromise<Message> {
-    const { id } = data
+    const { lab_id, item_id } = data
     return __request(OpenAPI, {
       method: "DELETE",
-      url: "/api/v1/items/{id}",
+      url: "/api/v1/labs/{lab_id}/items/{item_id}",
       path: {
-        id,
+        lab_id,
+        item_id,
       },
       errors: {
         422: `Validation Error`,
@@ -527,3 +827,157 @@ export class ItemsService {
     })
   }
 }
+
+// export type TDataBorrowItem = {
+//   lab_id: string
+//   item_id: string
+//   requestBody: BorrowCreate
+// }
+
+// export type TDataViewBorrowings = {
+//   lab_id: string
+//   item_id: string
+// }
+
+// export type TDataUpdateBorrowing = {
+//   lab_id: string
+//   item_id: string
+//   borrow_id: string
+//   requestBody: BorrowCreate
+// }
+
+// export type TDataDeleteBorrowing = {
+//   lab_id: string
+//   item_id: string
+//   borrow_id: string
+// }
+
+// export type TDataViewBorrowing = {
+//   lab_id: string
+//   item_id: string
+//   borrow_id: string
+// }
+
+// export class BorrowService {
+//   /**
+//    * Borrow Item
+//    * Borrow an item from a lab by providing the start and end dates.
+//    * @returns Message Successful Response
+//    * @throws ApiError
+//    */
+//   public static borrowItem(
+//     data: TDataBorrowItem,
+//   ): CancelablePromise<Message> {
+//     const { lab_id, item_id, requestBody } = data
+//     return __request(OpenAPI, {
+//       method: "POST",
+//       url: "/api/v1/labs/{lab_id}/items/{item_id}/borrow",
+//       path: {
+//         lab_id,
+//         item_id,
+//       },
+//       body: requestBody,
+//       mediaType: "application/json",
+//       errors: {
+//         422: `Validation Error`,
+//       },
+//     })
+//   }
+
+//   /**
+//    * View Borrowings
+//    * View all borrowings for a specific item in a lab.
+//    * @returns Array<Borrowing> Successful Response
+//    * @throws ApiError
+//    */
+//   public static viewBorrowings(
+//     data: TDataViewBorrowings,
+//   ): CancelablePromise<Array<BorrowCreate>> {
+//     const { lab_id, item_id } = data
+//     return __request(OpenAPI, {
+//       method: "GET",
+//       url: "/api/v1/labs/{lab_id}/items/{item_id}/borrow",
+//       path: {
+//         lab_id,
+//         item_id,
+//       },
+//       errors: {
+//         422: `Validation Error`,
+//       },
+//     })
+//   }
+
+//   /**
+//    * Update Borrowing
+//    * Update the return date, table_name, and system_name of a borrowing.
+//    * @returns Message Successful Response
+//    * @throws ApiError
+//    */
+//   public static updateBorrowing(
+//     data: TDataUpdateBorrowing,
+//   ): CancelablePromise<Message> {
+//     const { lab_id, item_id, borrow_id, requestBody } = data
+//     return __request(OpenAPI, {
+//       method: "PUT",
+//       url: "/api/v1/labs/{lab_id}/items/{item_id}/borrow/{borrow_id}",
+//       path: {
+//         lab_id,
+//         item_id,
+//         borrow_id,
+//       },
+//       body: requestBody,
+//       mediaType: "application/json",
+//       errors: {
+//         422: `Validation Error`,
+//       },
+//     })
+//   }
+
+//   /**
+//    * Delete Borrowing
+//    * Delete a borrowing.
+//    * @returns Message Successful Response
+//    * @throws ApiError
+//    */
+//   public static deleteBorrowing(
+//     data: TDataDeleteBorrowing,
+//   ): CancelablePromise<Message> {
+//     const { lab_id, item_id, borrow_id } = data
+//     return __request(OpenAPI, {
+//       method: "DELETE",
+//       url: "/api/v1/labs/{lab_id}/items/{item_id}/borrow/{borrow_id}",
+//       path: {
+//         lab_id,
+//         item_id,
+//         borrow_id,
+//       },
+//       errors: {
+//         422: `Validation Error`,
+//       },
+//     })
+//   }
+
+//   /**
+//    * View Borrowing
+//    * View details of a specific borrowing.
+//    * @returns Borrowing Successful Response
+//    * @throws ApiError
+//    */
+//   public static viewBorrowing(
+//     data: TDataViewBorrowing,
+//   ): CancelablePromise<BorrowCreate> {
+//     const { lab_id, item_id, borrow_id } = data
+//     return __request(OpenAPI, {
+//       method: "GET",
+//       url: "/api/v1/labs/{lab_id}/items/{item_id}/borrow/{borrow_id}",
+//       path: {
+//         lab_id,
+//         item_id,
+//         borrow_id,
+//       },
+//       errors: {
+//         422: `Validation Error`,
+//       },
+//     })
+//   }
+// }

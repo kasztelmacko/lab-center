@@ -41,12 +41,19 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
   } = useForm<ItemUpdate>({
     mode: "onBlur",
     criteriaMode: "all",
-    defaultValues: item,
+    defaultValues: {
+      item_name: item.item_name,
+      quantity: item.quantity,
+      item_img_url: item.item_img_url,
+      item_vendor: item.item_vendor,
+      item_params: item.item_params,
+      lab_id: item.lab_id,
+    },
   })
 
   const mutation = useMutation({
     mutationFn: (data: ItemUpdate) =>
-      ItemsService.updateItem({ id: item.id, requestBody: data }),
+      ItemsService.updateItem({ lab_id: item.lab_id, item_id: item.item_id, requestBody: data }),
     onSuccess: () => {
       showToast("Success!", "Item updated successfully.", "success")
       onClose()
@@ -81,27 +88,71 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
           <ModalHeader>Edit Item</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
-            <FormControl isInvalid={!!errors.title}>
-              <FormLabel htmlFor="title">Title</FormLabel>
+            <FormControl isInvalid={!!errors.item_name}>
+              <FormLabel htmlFor="item_name">Item Name</FormLabel>
               <Input
-                id="title"
-                {...register("title", {
-                  required: "Title is required",
-                })}
+                id="item_name"
+                {...register("item_name")}
                 type="text"
               />
-              {errors.title && (
-                <FormErrorMessage>{errors.title.message}</FormErrorMessage>
+              {errors.item_name && (
+                <FormErrorMessage>{errors.item_name.message}</FormErrorMessage>
               )}
             </FormControl>
-            <FormControl mt={4}>
-              <FormLabel htmlFor="description">Description</FormLabel>
+
+            <FormControl mt={4} isInvalid={!!errors.quantity}>
+              <FormLabel htmlFor="quantity">Quantity</FormLabel>
               <Input
-                id="description"
-                {...register("description")}
-                placeholder="Description"
+                id="quantity"
+                {...register("quantity", {
+                  valueAsNumber: true,
+                  validate: (value) =>
+                    value === undefined || value === null || value >= 0 || "Quantity must be a non-negative number.",
+                })}
+                type="number"
+              />
+              {errors.quantity && (
+                <FormErrorMessage>{errors.quantity.message}</FormErrorMessage>
+              )}
+            </FormControl>
+
+            <FormControl mt={4}>
+              <FormLabel htmlFor="item_img_url">Item Image URL</FormLabel>
+              <Input
+                id="item_img_url"
+                {...register("item_img_url")}
                 type="text"
               />
+            </FormControl>
+
+            <FormControl mt={4}>
+              <FormLabel htmlFor="item_vendor">Item Vendor</FormLabel>
+              <Input
+                id="item_vendor"
+                {...register("item_vendor")}
+                type="text"
+              />
+            </FormControl>
+
+            <FormControl mt={4}>
+              <FormLabel htmlFor="item_params">Item Parameters</FormLabel>
+              <Input
+                id="item_params"
+                {...register("item_params")}
+                type="text"
+              />
+            </FormControl>
+
+            <FormControl mt={4} isInvalid={!!errors.lab_id}>
+              <FormLabel htmlFor="lab_id">Lab ID</FormLabel>
+              <Input
+                id="lab_id"
+                {...register("lab_id")}
+                type="text"
+              />
+              {errors.lab_id && (
+                <FormErrorMessage>{errors.lab_id.message}</FormErrorMessage>
+              )}
             </FormControl>
           </ModalBody>
           <ModalFooter gap={3}>

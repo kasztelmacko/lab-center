@@ -32,15 +32,19 @@ export const Route = createFileRoute("/_layout/items")({
 
 const PER_PAGE = 5
 
-function getItemsQueryOptions({ page }: { page: number }) {
+function getItemsQueryOptions({ page, lab_id }: { page: number; lab_id: string }) {
   return {
     queryFn: () =>
-      ItemsService.readItems({ skip: (page - 1) * PER_PAGE, limit: PER_PAGE }),
-    queryKey: ["items", { page }],
+      ItemsService.readItems({ lab_id, skip: (page - 1) * PER_PAGE, limit: PER_PAGE }),
+    queryKey: ["items", { page, lab_id }],
   }
 }
 
-function ItemsTable() {
+interface ItemsTableProps {
+  lab_id: string;
+}
+
+function ItemsTable({ lab_id }: ItemsTableProps) {
   const queryClient = useQueryClient()
   const { page } = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
@@ -52,7 +56,7 @@ function ItemsTable() {
     isPending,
     isPlaceholderData,
   } = useQuery({
-    ...getItemsQueryOptions({ page }),
+    ...getItemsQueryOptions({ page, lab_id }),
     placeholderData: (prevData) => prevData,
   })
 
@@ -61,9 +65,9 @@ function ItemsTable() {
 
   useEffect(() => {
     if (hasNextPage) {
-      queryClient.prefetchQuery(getItemsQueryOptions({ page: page + 1 }))
+      queryClient.prefetchQuery(getItemsQueryOptions({ page: page + 1, lab_id }))
     }
-  }, [page, queryClient, hasNextPage])
+  }, [page, queryClient, hasNextPage, lab_id])
 
   return (
     <>
@@ -72,15 +76,19 @@ function ItemsTable() {
           <Thead>
             <Tr>
               <Th>ID</Th>
-              <Th>Title</Th>
-              <Th>Description</Th>
+              <Th>Item Name</Th>
+              <Th>Quantity</Th>
+              <Th>Item Image URL</Th>
+              <Th>Item Vendor</Th>
+              <Th>Item Parameters</Th>
+              <Th>Lab ID</Th>
               <Th>Actions</Th>
             </Tr>
           </Thead>
           {isPending ? (
             <Tbody>
               <Tr>
-                {new Array(4).fill(null).map((_, index) => (
+                {new Array(8).fill(null).map((_, index) => (
                   <Td key={index}>
                     <SkeletonText noOfLines={1} paddingBlock="16px" />
                   </Td>
@@ -90,18 +98,22 @@ function ItemsTable() {
           ) : (
             <Tbody>
               {items?.data.map((item) => (
-                <Tr key={item.id} opacity={isPlaceholderData ? 0.5 : 1}>
-                  <Td>{item.id}</Td>
+                <Tr key={item.item_id} opacity={isPlaceholderData ? 0.5 : 1}>
+                  <Td>{item.item_id}</Td>
                   <Td isTruncated maxWidth="150px">
-                    {item.title}
+                    {item.item_name}
                   </Td>
-                  <Td
-                    color={!item.description ? "ui.dim" : "inherit"}
-                    isTruncated
-                    maxWidth="150px"
-                  >
-                    {item.description || "N/A"}
+                  <Td>{item.quantity || "N/A"}</Td>
+                  <Td isTruncated maxWidth="150px">
+                    {item.item_img_url || "N/A"}
                   </Td>
+                  <Td isTruncated maxWidth="150px">
+                    {item.item_vendor || "N/A"}
+                  </Td>
+                  <Td isTruncated maxWidth="150px">
+                    {item.item_params || "N/A"}
+                  </Td>
+                  <Td>{item.lab_id}</Td>
                   <Td>
                     <ActionsMenu type={"Item"} value={item} />
                   </Td>
@@ -121,7 +133,7 @@ function ItemsTable() {
   )
 }
 
-function Items() {
+function Items({ lab_id }: { lab_id: string }) {
   return (
     <Container maxW="full">
       <Heading size="lg" textAlign={{ base: "center", md: "left" }} pt={12}>
@@ -129,7 +141,7 @@ function Items() {
       </Heading>
 
       <Navbar type={"Item"} addModalAs={AddItem} />
-      <ItemsTable />
+      <ItemsTable lab_id={lab_id} />
     </Container>
   )
 }

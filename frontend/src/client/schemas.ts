@@ -62,13 +62,17 @@ export const $HTTPValidationError = {
 
 export const $ItemCreate = {
   properties: {
-    title: {
+    item_name: {
       type: "string",
       isRequired: true,
       maxLength: 255,
       minLength: 1,
     },
-    description: {
+    quantity: {
+      type: "number",
+      default: 0,
+    },
+    item_img_url: {
       type: "any-of",
       contains: [
         {
@@ -79,19 +83,52 @@ export const $ItemCreate = {
           type: "null",
         },
       ],
+    },
+    item_vendor: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    item_params: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    lab_id: {
+      type: "string",
+      isRequired: true,
+      format: "uuid",
     },
   },
 } as const
 
 export const $ItemPublic = {
   properties: {
-    title: {
+    item_name: {
       type: "string",
       isRequired: true,
       maxLength: 255,
       minLength: 1,
     },
-    description: {
+    quantity: {
+      type: "number",
+      default: 0,
+    },
+    item_img_url: {
       type: "any-of",
       contains: [
         {
@@ -103,12 +140,36 @@ export const $ItemPublic = {
         },
       ],
     },
-    id: {
+    item_vendor: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    item_params: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    lab_id: {
       type: "string",
       isRequired: true,
       format: "uuid",
     },
-    owner_id: {
+    item_id: {
       type: "string",
       isRequired: true,
       format: "uuid",
@@ -118,7 +179,7 @@ export const $ItemPublic = {
 
 export const $ItemUpdate = {
   properties: {
-    title: {
+    item_name: {
       type: "any-of",
       contains: [
         {
@@ -131,12 +192,59 @@ export const $ItemUpdate = {
         },
       ],
     },
-    description: {
+    quantity: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    item_img_url: {
       type: "any-of",
       contains: [
         {
           type: "string",
           maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    item_vendor: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    item_params: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    lab_id: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          format: "uuid",
         },
         {
           type: "null",
@@ -281,7 +389,7 @@ export const $UserPublic = {
         },
       ],
     },
-    id: {
+    user_id: {
       type: "string",
       isRequired: true,
       format: "uuid",
@@ -439,6 +547,301 @@ export const $ValidationError = {
     type: {
       type: "string",
       isRequired: true,
+    },
+  },
+} as const
+
+export const $LabCreate = {
+  properties: {
+    lab_place: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    lab_university: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    lab_num: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+  },
+} as const
+
+export const $LabPublic = {
+  properties: {
+    lab_place: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    lab_university: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    lab_num: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    lab_id: {
+      type: "string",
+      isRequired: true,
+      format: "uuid",
+    },
+    owner_id: {
+      type: "string",
+      isRequired: true,
+      format: "uuid",
+    },
+  },
+} as const
+
+export const $LabUpdate = {
+  properties: {
+    lab_place: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    lab_university: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    lab_num: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+  },
+} as const
+
+export const $LabsPublic = {
+  properties: {
+    data: {
+      type: "array",
+      contains: {
+        type: "LabPublic",
+      },
+      isRequired: true,
+    },
+    count: {
+      type: "number",
+      isRequired: true,
+    },
+  },
+} as const
+
+export const $UserLab = {
+  properties: {
+    userlab_id: {
+      type: "string",
+      isRequired: true,
+      format: "uuid",
+    },
+    user_id: {
+      type: "string",
+      isRequired: true,
+      format: "uuid",
+    },
+    lab_id: {
+      type: "string",
+      isRequired: true,
+      format: "uuid",
+    },
+    can_edit_lab: {
+      type: "boolean",
+      default: false,
+    },
+    can_edit_items: {
+      type: "boolean",
+      default: false,
+    },
+    can_edit_users: {
+      type: "boolean",
+      default: false,
+    },
+  },
+} as const
+
+export const $AddUsersToLab = {
+  properties: {
+    emails: {
+      type: "array",
+      contains: {
+        type: "string",
+        format: "email",
+        maxLength: 255,
+      },
+      isRequired: true,
+    },
+    can_edit_lab: {
+      type: "boolean",
+      default: false,
+    },
+    can_edit_items: {
+      type: "boolean",
+      default: false,
+    },
+    can_edit_users: {
+      type: "boolean",
+      default: false,
+    },
+  },
+} as const
+
+export const $UpdateUserLab = {
+  properties: {
+    can_edit_lab: {
+      type: "boolean",
+      default: false,
+    },
+    can_edit_items: {
+      type: "boolean",
+      default: false,
+    },
+    can_edit_users: {
+      type: "boolean",
+      default: false,
+    },
+  },
+} as const
+
+export const $RemoveUsersFromLab = {
+  properties: {
+    user_ids: {
+      type: "array",
+      contains: {
+        type: "string",
+        format: "uuid",
+      },
+      isRequired: true,
+    },
+  },
+} as const
+
+export const $BorrowCreate = {
+  properties: {
+    start_date: {
+      type: "string",
+      isRequired: true,
+    },
+    end_date: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    table_name: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    system_name: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+  },
+} as const
+
+export const $TokenPayload = {
+  properties: {
+    sub: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+        },
+        {
+          type: "null",
+        },
+      ],
     },
   },
 } as const

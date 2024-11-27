@@ -11,17 +11,19 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import React from "react"
 import { useForm } from "react-hook-form"
 
-import { ItemsService, UsersService } from "../../client"
+import { UsersService, LabsService, ItemsService } from "../../client"
 import useCustomToast from "../../hooks/useCustomToast"
 
 interface DeleteProps {
   type: string
-  id: string
+  user_id?: string
+  lab_id?: string
+  item_id?: string
   isOpen: boolean
   onClose: () => void
 }
 
-const Delete = ({ type, id, isOpen, onClose }: DeleteProps) => {
+const Delete = ({ type, user_id, lab_id, item_id, isOpen, onClose }: DeleteProps) => {
   const queryClient = useQueryClient()
   const showToast = useCustomToast()
   const cancelRef = React.useRef<HTMLButtonElement | null>(null)
@@ -30,11 +32,22 @@ const Delete = ({ type, id, isOpen, onClose }: DeleteProps) => {
     formState: { isSubmitting },
   } = useForm()
 
-  const deleteEntity = async (id: string) => {
+  const deleteEntity = async () => {
     if (type === "Item") {
-      await ItemsService.deleteItem({ id: id })
+      if (!item_id || !lab_id) {
+        throw new Error("Item ID and Lab ID are required for deleting an item.")
+      }
+      await ItemsService.deleteItem({ item_id, lab_id })
     } else if (type === "User") {
-      await UsersService.deleteUser({ userId: id })
+      if (!user_id) {
+        throw new Error("User ID is required for deleting a user.")
+      }
+      await UsersService.deleteUser({ user_id })
+    } else if (type === "Lab") {
+      if (!lab_id) {
+        throw new Error("Lab ID is required for deleting a lab.")
+      }
+      await LabsService.deleteLab({ lab_id })
     } else {
       throw new Error(`Unexpected type: ${type}`)
     }
@@ -59,13 +72,13 @@ const Delete = ({ type, id, isOpen, onClose }: DeleteProps) => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: [type === "Item" ? "items" : "users"],
+        queryKey: [type === "Item" ? "items" : type === "User" ? "users" : "labs"],
       })
     },
   })
 
   const onSubmit = async () => {
-    mutation.mutate(id)
+    mutation.mutate()
   }
 
   return (
@@ -85,7 +98,7 @@ const Delete = ({ type, id, isOpen, onClose }: DeleteProps) => {
               {type === "User" && (
                 <span>
                   All items associated with this user will also be{" "}
-                  <strong>permantly deleted. </strong>
+                  <strong>permanently deleted. </strong>
                 </span>
               )}
               Are you sure? You will not be able to undo this action.

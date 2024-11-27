@@ -15,16 +15,17 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
-import { type ApiError, type ItemCreate, ItemsService } from "../../client"
+import { type ApiError, type ItemCreate, ItemsService, TDataCreateItem } from "../../client"
 import useCustomToast from "../../hooks/useCustomToast"
 import { handleError } from "../../utils"
 
 interface AddItemProps {
   isOpen: boolean
   onClose: () => void
+  labId: string // Pass the lab_id from the parent component
 }
 
-const AddItem = ({ isOpen, onClose }: AddItemProps) => {
+const AddItem = ({ isOpen, onClose, labId }: AddItemProps) => {
   const queryClient = useQueryClient()
   const showToast = useCustomToast()
   const {
@@ -36,14 +37,18 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
-      title: "",
-      description: "",
+      item_name: "",
+      quantity: undefined,
+      item_img_url: undefined,
+      item_vendor: undefined,
+      item_params: undefined,
+      lab_id: labId, // Set the lab_id from the parent component
     },
   })
 
   const mutation = useMutation({
     mutationFn: (data: ItemCreate) =>
-      ItemsService.createItem({ requestBody: data }),
+      ItemsService.createItem({ lab_id: labId, requestBody: data }),
     onSuccess: () => {
       showToast("Success!", "Item created successfully.", "success")
       reset()
@@ -74,26 +79,64 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
           <ModalHeader>Add Item</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
-            <FormControl isRequired isInvalid={!!errors.title}>
-              <FormLabel htmlFor="title">Title</FormLabel>
+            <FormControl isRequired isInvalid={!!errors.item_name}>
+              <FormLabel htmlFor="item_name">Item Name</FormLabel>
               <Input
-                id="title"
-                {...register("title", {
-                  required: "Title is required.",
+                id="item_name"
+                {...register("item_name", {
+                  required: "Item Name is required.",
                 })}
-                placeholder="Title"
+                placeholder="Item Name"
                 type="text"
               />
-              {errors.title && (
-                <FormErrorMessage>{errors.title.message}</FormErrorMessage>
+              {errors.item_name && (
+                <FormErrorMessage>{errors.item_name.message}</FormErrorMessage>
               )}
             </FormControl>
-            <FormControl mt={4}>
-              <FormLabel htmlFor="description">Description</FormLabel>
+
+            <FormControl mt={4} isInvalid={!!errors.quantity}>
+              <FormLabel htmlFor="quantity">Quantity</FormLabel>
               <Input
-                id="description"
-                {...register("description")}
-                placeholder="Description"
+                id="quantity"
+                {...register("quantity", {
+                  valueAsNumber: true,
+                  validate: (value) =>
+                    value === undefined || value >= 0 || "Quantity must be a non-negative number.",
+                })}
+                placeholder="Quantity"
+                type="number"
+              />
+              {errors.quantity && (
+                <FormErrorMessage>{errors.quantity.message}</FormErrorMessage>
+              )}
+            </FormControl>
+
+            <FormControl mt={4}>
+              <FormLabel htmlFor="item_img_url">Item Image URL</FormLabel>
+              <Input
+                id="item_img_url"
+                {...register("item_img_url")}
+                placeholder="Item Image URL"
+                type="text"
+              />
+            </FormControl>
+
+            <FormControl mt={4}>
+              <FormLabel htmlFor="item_vendor">Item Vendor</FormLabel>
+              <Input
+                id="item_vendor"
+                {...register("item_vendor")}
+                placeholder="Item Vendor"
+                type="text"
+              />
+            </FormControl>
+
+            <FormControl mt={4}>
+              <FormLabel htmlFor="item_params">Item Parameters</FormLabel>
+              <Input
+                id="item_params"
+                {...register("item_params")}
+                placeholder="Item Parameters"
                 type="text"
               />
             </FormControl>

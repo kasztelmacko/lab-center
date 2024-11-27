@@ -23,9 +23,9 @@ import type {
   LabsPublic,
   LabUpdate,
   AddUsersToLab,
-  RemoveUsersFromLab,
+  // RemoveUsersFromLab,
   UpdateUserLab,
-  BorrowCreate
+  // BorrowCreate
 } from "./models"
 
 export type TDataLoginAccessToken = {

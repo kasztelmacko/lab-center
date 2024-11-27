@@ -5,36 +5,41 @@ import {
   MenuItem,
   MenuList,
   useDisclosure,
-} from "@chakra-ui/react"
-import { BsThreeDotsVertical } from "react-icons/bs"
-import { FiEdit, FiTrash } from "react-icons/fi"
+} from "@chakra-ui/react";
+import { BsThreeDotsVertical } from "react-icons/bs";
+import { FiEdit, FiTrash } from "react-icons/fi";
 
-import type { ItemPublic, LabPublic, UserPublic } from "../../client"
-import EditUser from "../Admin/EditUser"
-import EditItem from "../Items/EditItem"
-import EditLab from "../Labs/EditLab"
-import Delete from "./DeleteAlert"
+import type { ItemPublic, LabPublic, UserPublic } from "../../client";
+import EditUser from "../Admin/EditUser";
+import EditItem from "../Items/EditItem";
+import EditLab from "../Labs/EditLab";
+import Delete from "./DeleteAlert";
 
 interface ActionsMenuProps {
-  type: string
-  value: ItemPublic | UserPublic | LabPublic
-  disabled?: boolean
+  type: string;
+  value: ItemPublic | UserPublic | LabPublic;
+  disabled?: boolean;
 }
 
 const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
-  const editUserModal = useDisclosure()
-  const deleteModal = useDisclosure()
+  const editUserModal = useDisclosure();
+  const deleteModal = useDisclosure();
 
   const getId = (value: UserPublic | ItemPublic | LabPublic) => {
     if (type === "User") {
-      return (value as UserPublic).user_id
+      return { user_id: (value as UserPublic).user_id };
     } else if (type === "Item") {
-      return (value as ItemPublic).item_id
+      return {
+        lab_id: (value as ItemPublic).lab_id,
+        item_id: (value as ItemPublic).item_id,
+      };
     } else if (type === "Lab") {
-      return (value as LabPublic).lab_id
+      return { lab_id: (value as LabPublic).lab_id };
     }
-    return ""
-  }
+    return {};
+  };
+
+  const ids = getId(value);
 
   return (
     <>
@@ -81,13 +86,15 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
         ) : null}
         <Delete
           type={type}
-          id={getId(value)}
+          user_id={ids.user_id}
+          lab_id={ids.lab_id}
+          item_id={ids.item_id}
           isOpen={deleteModal.isOpen}
           onClose={deleteModal.onClose}
         />
       </Menu>
     </>
-  )
-}
+  );
+};
 
-export default ActionsMenu
+export default ActionsMenu;

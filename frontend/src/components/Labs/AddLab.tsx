@@ -82,7 +82,7 @@ import {
                   {...register("lab_place", {
                     required: "Place is required.",
                   })}
-                  placeholder="Place"
+                  placeholder="ex. IMiF"
                   type="text"
                 />
                 {errors.lab_place && (
@@ -94,7 +94,7 @@ import {
                 <Input
                   id="lab_university"
                   {...register("lab_university")}
-                  placeholder="University"
+                  placeholder="ex. University of Warsaw"
                   type="text"
                 />
                 {errors.lab_university && (
@@ -106,7 +106,7 @@ import {
                 <Input
                   id="lab_num"
                   {...register("lab_num")}
-                  placeholder="Number"
+                  placeholder="ex. B4.01"
                   type="text"
                 />
                 {errors.lab_num && (

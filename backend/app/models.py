@@ -154,7 +154,7 @@ class UserLab(SQLModel, table=True):
     lab: Lab | None = Relationship(back_populates="user_labs")
 
 class AddUsersToLab(SQLModel):
-    emails: list[EmailStr]
+    email: EmailStr
     can_edit_lab: bool = False
     can_edit_items: bool = False
     can_edit_users: bool = False

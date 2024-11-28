@@ -23,9 +23,12 @@ import type {
   LabsPublic,
   LabUpdate,
   AddUsersToLab,
+  UserLabsPublic,
+  UserLabPublic,
   // RemoveUsersFromLab,
   UpdateUserLab,
   // BorrowCreate
+
 } from "./models"
 
 export type TDataLoginAccessToken = {
@@ -596,7 +599,7 @@ export class LabsService {
    */
   public static viewLabUsers(
     data: TDataViewLabUsers,
-  ): CancelablePromise<Array<UsersPublic>> {
+  ): CancelablePromise<UserLabsPublic> {
     const { lab_id } = data
     return __request(OpenAPI, {
       method: "GET",
@@ -618,7 +621,7 @@ export class LabsService {
    */
   public static viewUserInLab(
     data: TDataViewUserInLab,
-  ): CancelablePromise<UsersPublic> {
+  ): CancelablePromise<UserLabPublic> {
     const { lab_id, user_id } = data
     return __request(OpenAPI, {
       method: "GET",

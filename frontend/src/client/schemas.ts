@@ -734,13 +734,8 @@ export const $UserLab = {
 
 export const $AddUsersToLab = {
   properties: {
-    emails: {
-      type: "array",
-      contains: {
-        type: "string",
-        format: "email",
-        maxLength: 255,
-      },
+    email: {
+      type: "string",
       isRequired: true,
     },
     can_edit_lab: {

@@ -155,12 +155,12 @@ def delete_lab(
     
     return Message(message="Lab deleted successfully")
 
-@router.post("/{lab_id}/add-users", response_model=Message)
-def add_users_to_lab(
-    *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID, add_users_in: AddUsersToLab
+@router.post("/{lab_id}/add-user", response_model=Message)
+def add_user_to_lab(
+    *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID, add_user_in: AddUsersToLab
 ) -> Any:
     """
-    Add users to a lab by providing a list of emails and their permissions.
+    Add a user to a lab by providing an email and their permissions.
     """
     # Check if the current user is the owner of the lab or has can_edit_users permission
     lab = session.get(Lab, lab_id)
@@ -178,31 +178,26 @@ def add_users_to_lab(
         if not user_lab or not user_lab.can_edit_users:
             raise HTTPException(status_code=400, detail="Not enough permissions")
 
-    # Find users by their emails
-    emails = add_users_in.emails
-    users = session.exec(select(User).where(User.email.in_(emails))).all()
+    # Find the user by their email
+    email = add_user_in.email
+    user = session.exec(select(User).where(User.email == email)).first()
 
-    # Check if all users were found
-    found_emails = {user.email for user in users}
-    not_found_emails = set(emails) - found_emails
-    if not_found_emails:
-        raise HTTPException(status_code=404, detail=f"Users with emails {not_found_emails} not found")
+    # Check if the user was found
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User with email {email} not found")
 
-    # Create UserLab instances for each user and the lab with specified permissions
-    user_labs = []
-    for user in users:
-        user_lab = UserLab(
-            user_id=user.user_id,
-            lab_id=lab_id,
-            can_edit_lab=add_users_in.can_edit_lab,
-            can_edit_items=add_users_in.can_edit_items,
-            can_edit_users=add_users_in.can_edit_users
-        )
-        session.add(user_lab)
-        user_labs.append(user_lab)
+    # Create UserLab instance for the user and the lab with specified permissions
+    user_lab = UserLab(
+        user_id=user.user_id,
+        lab_id=lab_id,
+        can_edit_lab=add_user_in.can_edit_lab,
+        can_edit_items=add_user_in.can_edit_items,
+        can_edit_users=add_user_in.can_edit_users
+    )
+    session.add(user_lab)
 
     session.commit()
-    return Message(message="Users added to lab successfully with specified permissions")
+    return Message(message="User added to lab successfully with specified permissions")
 
 @router.get("/{lab_id}/users", response_model=list[User])
 def view_lab_users(

@@ -146,16 +146,31 @@ export type UserLab = {
 }
 
 export type AddUsersToLab = {
-  emails: Array<string>
+  email: string
   can_edit_lab?: boolean
   can_edit_items?: boolean
   can_edit_users?: boolean
+  lab_id: string
 }
 
 export type UpdateUserLab = {
   can_edit_lab?: boolean
   can_edit_items?: boolean
   can_edit_users?: boolean
+}
+
+export type UserLabPublic = {
+  userlab_id: string
+  user_id: string
+  lab_id: string
+  can_edit_lab: boolean
+  can_edit_items: boolean
+  can_edit_users: boolean
+}
+
+export type UserLabsPublic = {
+  data: Array<UserLabPublic>
+  count: number
 }
 
 export type RemoveUsersFromLab = {

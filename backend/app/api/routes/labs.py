@@ -1,5 +1,6 @@
 import uuid
 from typing import Any
+import logging
 
 from fastapi import APIRouter, HTTPException
 from sqlmodel import func, select, delete, col
@@ -178,6 +179,7 @@ def add_user_to_lab(
         
         if not user_lab or not user_lab.can_edit_users:
             raise HTTPException(status_code=400, detail="Not enough permissions")
+        
 
     # Find the user by their email
     email = add_user_in.email
@@ -297,13 +299,15 @@ def view_user_in_lab(
     if not user_lab:
         raise HTTPException(status_code=404, detail=f"User with ID {user.user_id} is not associated with this lab")
 
-    # Include permissions in the response
-    user_with_permissions = user.copy()
-    user_with_permissions.can_edit_lab = user_lab.can_edit_lab
-    user_with_permissions.can_edit_items = user_lab.can_edit_items
-    user_with_permissions.can_edit_users = user_lab.can_edit_users
+    user_lab = UserLab(
+        user_id=user.user_id,
+        lab_id=lab_id,
+        can_edit_lab=user.can_edit_lab,
+        can_edit_items=user.can_edit_items,
+        can_edit_users=user.can_edit_users
+    )
 
-    return user_with_permissions
+    return user_lab
 
 
 @router.delete("/{lab_id}/users/{user_id}/remove-user", response_model=Message)

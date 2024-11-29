@@ -47,20 +47,21 @@ const AddUserLab = ({ isOpen, onClose, labId }: AddUserLabProps) => {
   })
 
   const mutation = useMutation({
-      mutationFn: (data: AddUsersToLab) =>
-          LabsService.addUsersToLab({ lab_id: labId, requestBody: data }),
-      onSuccess: () => {
-          showToast("Success!", "User added to Lab successfully.", "success")
-          reset()
-          onClose()
-      },
-      onError: (err: ApiError) => {
-          handleError(err, showToast)
-      },
-      onSettled: () => {
-          queryClient.invalidateQueries({ queryKey: ["labs"] })
-      },
-  })
+    mutationFn: (data: AddUsersToLab) => {
+        return LabsService.addUsersToLab({ lab_id: labId, requestBody: data });
+    },
+    onSuccess: () => {
+        showToast("Success!", "User added to Lab successfully.", "success");
+        reset();
+        onClose();
+    },
+    onError: (err: ApiError) => {
+        handleError(err, showToast);
+    },
+    onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: ["labs"] });
+    },
+});
 
   const onSubmit: SubmitHandler<AddUsersToLab> = (data) => {
       mutation.mutate(data)

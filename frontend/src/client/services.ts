@@ -581,7 +581,7 @@ export class LabsService {
     const { lab_id, requestBody } = data
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/labs/{lab_id}/add-users",
+      url: "/api/v1/labs/{lab_id}/add-user",
       path: {
         lab_id,
       },
@@ -621,7 +621,7 @@ export class LabsService {
    * @returns User Successful Response
    * @throws ApiError
    */
-  public static viewUserInLab(
+  public static viewLabUser(
     data: TDataViewUserInLab,
   ): CancelablePromise<UserLabPublic> {
     const { lab_id, user_id } = data

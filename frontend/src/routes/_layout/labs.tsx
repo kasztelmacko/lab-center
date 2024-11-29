@@ -150,7 +150,7 @@ function LabCard({ lab }: { lab: LabPublic }) {
 function Labs() {
   return (
     <Container maxW="full">
-      <Navbar type={"lab"} addModalAs={AddLab} />
+      <Navbar type="lab" addModalAs={AddLab} />
       <LabsCards />
     </Container>
   )

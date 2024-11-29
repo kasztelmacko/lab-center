@@ -150,7 +150,6 @@ export type AddUsersToLab = {
   can_edit_lab?: boolean
   can_edit_items?: boolean
   can_edit_users?: boolean
-  lab_id: string
 }
 
 export type UpdateUserLab = {

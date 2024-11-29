@@ -18,19 +18,19 @@ import {
     type ApiError,
     type UpdateUserLab,
     LabsService,
+    UserLab,
   } from "../../client"
   import useCustomToast from "../../hooks/useCustomToast"
   import { handleError } from "../../utils"
   
   interface UpdateUserLabProps {
-    userId: string
-    labId: string
+    userlab: UserLab
     isOpen: boolean
     onClose: () => void
     initialPermissions: UpdateUserLab
   }
   
-  const UpdateUserLab = ({ userId, labId, isOpen, onClose, initialPermissions }: UpdateUserLabProps) => {
+  const UpdateUserLab = ({ userlab, isOpen, onClose, initialPermissions }: UpdateUserLabProps) => {
     const queryClient = useQueryClient()
     const showToast = useCustomToast()
     const {
@@ -46,7 +46,7 @@ import {
   
     const mutation = useMutation({
       mutationFn: (data: UpdateUserLab) =>
-        LabsService.updateUserPermissions({ lab_id: labId, user_id: userId, requestBody: data }),
+        LabsService.updateUserPermissions({ lab_id: userlab.lab_id, user_id: userlab.user_id, requestBody: data }),
       onSuccess: () => {
         showToast("Success!", "User permissions updated successfully.", "success")
         onClose()
@@ -80,7 +80,7 @@ import {
           <ModalHeader>Update User Permissions</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
-            <FormControl mt={4}>
+            <FormControl mt={4} isInvalid={!!errors.can_edit_lab}>
               <FormLabel htmlFor="can_edit_lab">Can Edit Lab</FormLabel>
               <Checkbox
                 id="can_edit_lab"
@@ -88,7 +88,7 @@ import {
               />
             </FormControl>
   
-            <FormControl mt={4}>
+            <FormControl mt={4} isInvalid={!!errors.can_edit_items}>
               <FormLabel htmlFor="can_edit_items">Can Edit Items</FormLabel>
               <Checkbox
                 id="can_edit_items"
@@ -96,7 +96,7 @@ import {
               />
             </FormControl>
   
-            <FormControl mt={4}>
+            <FormControl mt={4} isInvalid={!!errors.can_edit_users}>
               <FormLabel htmlFor="can_edit_users">Can Edit Users</FormLabel>
               <Checkbox
                 id="can_edit_users"

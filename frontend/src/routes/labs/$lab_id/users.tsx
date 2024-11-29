@@ -7,8 +7,10 @@ import {
   Text,
   SimpleGrid,
   Icon,
+  Center,
+  Heading,
 } from "@chakra-ui/react"
-import { FiMail, FiUser } from "react-icons/fi"
+import { FiMail } from "react-icons/fi"
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { z } from "zod"
@@ -16,12 +18,13 @@ import { z } from "zod"
 import { LabsService, UserLabPublic } from "../../../client"
 import Navbar from "../../../components/Common/Navbar"
 import AddUserLab from "../../../components/UserLabs/AddUserLab"
+import ActionsMenu from "../../../components/Common/ActionsMenu"
 
 const UsersLabSearchSchema = z.object({
   page: z.number().catch(1),
 })
 
-export const Route = createFileRoute("/$lab_id/users")({
+export const Route = createFileRoute("/labs/$lab_id/users")({
   component: UserLabs,
   validateSearch: (search) => UsersLabSearchSchema.parse(search),
 })
@@ -48,7 +51,7 @@ function UserLabsCards() {
 
   return (
     <>
-      <SimpleGrid columns={{ base: 1, md: 3, lg: 4 }} spacing={4}>
+      <SimpleGrid columns={{ base: 1, md: 3, lg: 5 }} spacing={4}>
         {isUserLabsPending ? (
           new Array(5).fill(null).map((_, index) => (
             <Card key={index} opacity={isUserLabsPlaceholderData ? 0.5 : 1}>
@@ -74,28 +77,30 @@ function UserLabCard({ user }: { user: UserLabPublic }) {
   return (
     <Card>
       <CardHeader>
-        <Text>
-          <Icon as={FiUser} mr={2} />
-          owner: {user.full_name}
-        </Text>
-        <Text>
-          <Icon as={FiMail} mr={2} />
-          contact: {user.email}
-        </Text>
+        <Center>
+          <Text>
+            <Heading size="2xl">{user.full_name}</Heading>
+          </Text>
+        </Center>
       </CardHeader>
       <CardBody>
-        <Text>{user.can_edit_lab ? 'Can Edit Lab' : 'Cannot Edit Lab'}</Text>
-        <Text>{user.can_edit_items ? 'Can Edit Items' : 'Cannot Edit Items'}</Text>
-        <Text>{user.can_edit_users ? 'Can Edit Users' : 'Cannot Edit Users'}</Text>
+        <Center>
+          <Text>
+            <Icon as={FiMail} mr={2} />
+            contact: {user.email}
+          </Text>
+        </Center>
+        {user.can_edit_users && <ActionsMenu type={"UserLab"} value={user} />}
       </CardBody>
     </Card>
-  )
+  );
 }
 
 function UserLabs() {
+  const { lab_id } = Route.useParams()
   return (
     <Container maxW="full">
-      <Navbar type={"users"} addModalAs={AddUserLab} />
+      <Navbar type={"users"} addModalAs={AddUserLab} labId={lab_id}/>
       <UserLabsCards />
     </Container>
   )

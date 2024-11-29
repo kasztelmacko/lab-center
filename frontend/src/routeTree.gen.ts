@@ -21,8 +21,7 @@ import { Route as LayoutSettingsImport } from './routes/_layout/settings'
 import { Route as LayoutLabsImport } from './routes/_layout/labs'
 import { Route as LayoutItemsImport } from './routes/_layout/items'
 import { Route as LayoutAdminImport } from './routes/_layout/admin'
-import { Route as LabsUsersImport } from './routes/labs/$lab_id/users'
-import path from 'path'
+import { Route as LabsLabidUsersImport } from './routes/labs/$lab_id/users'
 
 // Create/Update Routes
 
@@ -76,9 +75,9 @@ const LayoutAdminRoute = LayoutAdminImport.update({
   getParentRoute: () => LayoutRoute,
 } as any)
 
-const LabsUsersRoute = LabsUsersImport.update({
-  path: '/$lab_id/users',
-  getParentRoute: () => LayoutLabsRoute,
+const LabsLabidUsersRoute = LabsLabidUsersImport.update({
+  path: '/labs/$lab_id/users',
+  getParentRoute: () => rootRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -109,12 +108,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAdminImport
       parentRoute: typeof LayoutImport
     }
-    '/_layout/labs': {
-      preLoaderRoute: typeof LayoutLabsImport
-      parentRoute: typeof LayoutImport
-    }
     '/_layout/items': {
       preLoaderRoute: typeof LayoutItemsImport
+      parentRoute: typeof LayoutImport
+    }
+    '/_layout/labs': {
+      preLoaderRoute: typeof LayoutLabsImport
       parentRoute: typeof LayoutImport
     }
     '/_layout/settings': {
@@ -125,9 +124,9 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutIndexImport
       parentRoute: typeof LayoutImport
     }
-    '/$lab_id/users': {
-      preLoaderRoute: typeof LabsUsersImport
-      parentRoute: typeof LayoutLabsImport
+    '/labs/$lab_id/users': {
+      preLoaderRoute: typeof LabsLabidUsersImport
+      parentRoute: typeof rootRoute
     }
   }
 }
@@ -137,10 +136,8 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren([
   LayoutRoute.addChildren([
     LayoutAdminRoute,
-    LayoutLabsRoute.addChildren([
-      LabsUsersRoute,
-    ]),
     LayoutItemsRoute,
+    LayoutLabsRoute,
     LayoutSettingsRoute,
     LayoutIndexRoute,
   ]),
@@ -148,6 +145,7 @@ export const routeTree = rootRoute.addChildren([
   RecoverPasswordRoute,
   ResetPasswordRoute,
   SignupRoute,
+  LabsLabidUsersRoute,
 ])
 
 /* prettier-ignore-end */

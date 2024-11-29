@@ -770,6 +770,62 @@ export const $UpdateUserLab = {
   },
 } as const
 
+export const $UserLabPublic = {
+  properties: {
+    userlab_id: {
+      type: "string",
+      isRequired: true,
+      format: "uuid",
+    },
+    user_id: {
+      type: "string",
+      isRequired: true,
+      format: "uuid",
+    },
+    lab_id: {
+      type: "string",
+      isRequired: true,
+      format: "uuid",
+    },
+    can_edit_lab: {
+      type: "boolean",
+      default: false,
+    },
+    can_edit_items: {
+      type: "boolean",
+      default: false,
+    },
+    can_edit_users: {
+      type: "boolean",
+      default: false,
+    },
+    full_name: {
+      type: "string",
+      isRequired: true,
+    },
+    email: {
+      type: "string",
+      isRequired: true,
+    },
+  },
+} as const
+
+export const $UserLabsPublic = {
+  properties: {
+    data: {
+      type: "array",
+      contains: {
+        type: "UserLabPublic",
+      },
+      isRequired: true,
+    },
+    count: {
+      type: "number",
+      isRequired: true,
+    },
+  },
+} as const
+
 export const $RemoveUsersFromLab = {
   properties: {
     user_ids: {

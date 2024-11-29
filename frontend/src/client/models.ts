@@ -166,6 +166,8 @@ export type UserLabPublic = {
   can_edit_lab: boolean
   can_edit_items: boolean
   can_edit_users: boolean
+  full_name: string
+  email: string
 }
 
 export type UserLabsPublic = {

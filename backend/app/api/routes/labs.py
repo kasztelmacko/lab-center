@@ -7,6 +7,7 @@ from sqlmodel import func, select, delete, col
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (Lab, LabCreate, LabPublic, LabsPublic, LabUpdate, 
                         UserLab, AddUsersToLab, RemoveUsersFromLab, UpdateUserLab,
+                        UserWithPermissions,
                         User,
                         Message)
 
@@ -199,18 +200,27 @@ def add_user_to_lab(
     session.commit()
     return Message(message="User added to lab successfully with specified permissions")
 
-@router.get("/{lab_id}/users", response_model=list[User])
+@router.get("/{lab_id}/users", response_model=list[UserWithPermissions])
 def view_lab_users(
     *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID
 ) -> Any:
     """
     View all users in a specific lab with their permissions.
     """
-    # Check if the current user is the owner of the lab or a superuser
+    # Check if the current user is part of the lab
     lab = session.get(Lab, lab_id)
     if not lab:
         raise HTTPException(status_code=404, detail="Lab not found")
-    if not current_user.is_superuser and (lab.owner_id != current_user.user_id):
+
+    # Check if the current user is part of the lab
+    user_lab = session.exec(
+        select(UserLab).where(
+            UserLab.lab_id == lab_id,
+            UserLab.user_id == current_user.user_id
+        )
+    ).first()
+
+    if not user_lab:
         raise HTTPException(status_code=400, detail="Not enough permissions")
 
     # Get all UserLab instances for the lab
@@ -233,10 +243,17 @@ def view_lab_users(
     for user in users:
         user_lab = next((ul for ul in user_labs if ul.user_id == user.user_id), None)
         if user_lab:
-            user_with_permissions = user.copy()
-            user_with_permissions.can_edit_lab = user_lab.can_edit_lab
-            user_with_permissions.can_edit_items = user_lab.can_edit_items
-            user_with_permissions.can_edit_users = user_lab.can_edit_users
+            user_with_permissions = UserWithPermissions(
+                email=user.email,
+                is_active=user.is_active,
+                is_superuser=user.is_superuser,
+                full_name=user.full_name,
+                user_id=user.user_id,
+                hashed_password=user.hashed_password,
+                can_edit_lab=user_lab.can_edit_lab,
+                can_edit_items=user_lab.can_edit_items,
+                can_edit_users=user_lab.can_edit_users
+            )
             users_with_permissions.append(user_with_permissions)
 
     return users_with_permissions

@@ -509,7 +509,9 @@ export class LabsService {
    * @returns LabPublic Successful Response
    * @throws ApiError
    */
-  public static readLab(data: TDataReadLab): CancelablePromise<LabPublic> {
+  public static readLab(
+    data: TDataReadLab
+  ): CancelablePromise<LabPublic> {
     const { lab_id } = data
     return __request(OpenAPI, {
       method: "GET",
@@ -594,7 +596,7 @@ export class LabsService {
   /**
    * View Lab Users
    * View all users in a specific lab with their permissions.
-   * @returns Array<User> Successful Response
+   * @returns Array<UserLabsPublic> Successful Response
    * @throws ApiError
    */
   public static viewLabUsers(

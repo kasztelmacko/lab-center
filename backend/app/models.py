@@ -164,6 +164,17 @@ class UpdateUserLab(SQLModel):
     can_edit_items: bool = False
     can_edit_users: bool = False
 
+class UserWithPermissions(SQLModel):
+    email: str
+    is_active: bool
+    is_superuser: bool
+    full_name: str
+    user_id: uuid.UUID
+    hashed_password: str
+    can_edit_lab: bool
+    can_edit_items: bool
+    can_edit_users: bool
+
 class RemoveUsersFromLab(SQLModel):
     user_ids: list[uuid.UUID]
 

@@ -92,13 +92,16 @@ interface UserLabCardProps {
 }
 
 function UserLabCard({ user, currentUser }: UserLabCardProps) {
+  const { lab_id } = Route.useParams();
   const { 
     data: currentUserPermissions, 
     isLoading: isLoadingPermissions, 
     error: permissionsError 
   } = useQuery(
-    getCurrentUserPermissions(currentUser.user_id, user.lab_id)
+    getCurrentUserPermissions(currentUser.user_id, lab_id)
   );
+
+  console.log(currentUserPermissions);
 
   if (isLoadingPermissions) {
     return (

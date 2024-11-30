@@ -85,6 +85,15 @@ class Lab(LabBase, table=True):
     items: list["Item"] = Relationship(back_populates="lab")
     user_labs: list["UserLab"] = Relationship(back_populates="lab")
 
+class LabWithOwnerDetails(SQLModel):
+    lab_id: uuid.UUID
+    owner_id: uuid.UUID
+    lab_place: str | None = Field(default=None, max_length=255)
+    lab_university: str | None = Field(default=None, max_length=255)
+    lab_num: str | None = Field(default=None, max_length=255)
+    owner_full_name: str | None = Field(default=None)
+    owner_email: str | None = Field(default=None)
+
 
 # Properties to return via API for Lab, id is always required
 class LabPublic(LabBase):

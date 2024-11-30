@@ -7,7 +7,7 @@ from sqlmodel import func, select, delete, col
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (Lab, LabCreate, LabPublic, LabsPublic, LabUpdate, 
-                        UserLab, AddUsersToLab, RemoveUsersFromLab, UpdateUserLab,
+                        UserLab, AddUsersToLab, LabWithOwnerDetails, UpdateUserLab,
                         UserWithPermissions,
                         User,
                         Message)
@@ -29,21 +29,50 @@ def read_labs(
         statement = select(Lab).offset(skip).limit(limit)
         labs = session.exec(statement).all()
     else:
+        # Join Lab with UserLab and filter by current_user.user_id
         count_statement = (
             select(func.count())
             .select_from(Lab)
-            .where(Lab.owner_id == current_user.user_id)
+            .join(UserLab, Lab.lab_id == UserLab.lab_id)
+            .where(UserLab.user_id == current_user.user_id)
         )
         count = session.exec(count_statement).one()
+
         statement = (
             select(Lab)
-            .where(Lab.owner_id == current_user.user_id)
+            .join(UserLab, Lab.lab_id == UserLab.lab_id)
+            .where(UserLab.user_id == current_user.user_id)
             .offset(skip)
             .limit(limit)
         )
         labs = session.exec(statement).all()
 
-    return LabsPublic(data=labs, count=count)
+    # Fetch owner details for each lab
+    lab_ids = [lab.lab_id for lab in labs]
+    owners_statement = (
+        select(User.user_id, User.full_name, User.email, Lab.lab_id)
+        .join(Lab, User.user_id == Lab.owner_id)
+        .where(Lab.lab_id.in_(lab_ids))
+    )
+    owners = session.exec(owners_statement).all()
+
+    owner_dict = {owner.lab_id: {"full_name": owner.full_name, "email": owner.email} for owner in owners}
+
+    labs_with_owner_details = []
+    for lab in labs:
+        owner_details = owner_dict.get(lab.lab_id, {})
+        lab_with_owner_details = LabWithOwnerDetails(
+            lab_id=lab.lab_id,
+            owner_id=lab.owner_id,
+            lab_place=lab.lab_place,
+            lab_university=lab.lab_university,
+            lab_num=lab.lab_num,
+            owner_full_name=owner_details.get("full_name"),
+            owner_email=owner_details.get("email")
+        )
+        labs_with_owner_details.append(lab_with_owner_details)
+
+    return LabsPublic(data=labs_with_owner_details, count=count)
 
 
 @router.get("/{lab_id}", response_model=LabPublic)
@@ -260,7 +289,7 @@ def view_lab_users(
 
     return users_with_permissions
 
-@router.get("/{lab_id}/users/{user_id}", response_model=User)
+@router.get("/{lab_id}/users/{user_id}", response_model=UserLab)
 def view_user_in_lab(
     *, session: SessionDep, current_user: CurrentUser, lab_id: uuid.UUID, user_id: uuid.UUID
 ) -> Any:
@@ -302,9 +331,9 @@ def view_user_in_lab(
     user_lab = UserLab(
         user_id=user.user_id,
         lab_id=lab_id,
-        can_edit_lab=user.can_edit_lab,
-        can_edit_items=user.can_edit_items,
-        can_edit_users=user.can_edit_users
+        can_edit_lab=user_lab.can_edit_lab,
+        can_edit_items=user_lab.can_edit_items,
+        can_edit_users=user_lab.can_edit_users
     )
 
     return user_lab
